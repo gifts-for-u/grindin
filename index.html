@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Grindin' — Daily HICT Interval Workout Timer</title>
+  <meta name="description" content="Hands-free, high-contrast daily interval workout timer with voice & audio cues built in Rust & WebAssembly.">
+  <meta name="theme-color" content="#0d0f12">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090b0e;
+      --card-bg: #14171d;
+      --card-border: #232936;
+      --text-main: #f3f5f8;
+      --text-muted: #8b94a5;
+      
+      /* Phase Accent Colors */
+      --color-work: #10b981;
+      --color-work-glow: rgba(16, 185, 129, 0.28);
+      --color-rest: #f59e0b;
+      --color-rest-glow: rgba(245, 158, 11, 0.28);
+      --color-warmup: #06b6d4;
+      --color-warmup-glow: rgba(6, 182, 212, 0.28);
+      --color-cooldown: #8b5cf6;
+      --color-cooldown-glow: rgba(139, 92, 246, 0.28);
+      
+      --accent: var(--color-work);
+      --accent-glow: var(--color-work-glow);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      transition: background-color 0.4s ease;
+    }
+
+    /* Dynamic Body States */
+    body.phase-work { --accent: var(--color-work); --accent-glow: var(--color-work-glow); }
+    body.phase-rest { --accent: var(--color-rest); --accent-glow: var(--color-rest-glow); }
+    body.phase-warmup { --accent: var(--color-warmup); --accent-glow: var(--color-warmup-glow); }
+    body.phase-cooldown { --accent: var(--color-cooldown); --accent-glow: var(--color-cooldown-glow); }
+    body.phase-inter-round { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.28); }
+
+    /* Top Navigation */
+    header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(13, 15, 18, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: #000;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 900;
+      font-size: 1.4rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Day Selector Tabs */
+    .day-strip {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--card-border);
+      background: #0d0f14;
+    }
+
+    .day-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .day-chip {
+      padding: 8px 14px;
+      border-radius: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .day-chip.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight: 800;
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    /* Main Timer Container */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .routine-banner {
+      margin-bottom: 14px;
+    }
+
+    .routine-day {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .routine-focus {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    /* Giant Phase Badge */
+    .phase-badge {
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #000;
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      box-shadow: 0 0 25px var(--accent-glow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* GIANT TIMER DISPLAY */
+    .timer-display {
+      margin: 10px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(6.5rem, 24vw, 13rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--accent);
+      text-shadow: 0 0 40px var(--accent-glow);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+    }
+
+    /* Movement Title */
+    .movement-title {
+      font-size: clamp(1.6rem, 5.5vw, 2.7rem);
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      max-width: 90%;
+      min-height: 2.4em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+
+    /* Next Up Card */
+    .next-up-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 450px;
+      width: 90%;
+      margin-bottom: 20px;
+      transition: opacity 0.3s;
+    }
+
+    .next-up-card span {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    /* Progress Stats Pills */
+    .progress-stats {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .stat-pill b {
+      color: var(--accent);
+    }
+
+    /* Control Buttons */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .btn-secondary {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.3rem;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .btn-primary {
+      padding: 0 42px;
+      height: 68px;
+      border-radius: 34px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 0 25px var(--accent-glow);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.96);
+    }
+
+    /* Routine Move List Bar */
+    .move-timeline {
+      width: 100%;
+      max-width: 600px;
+      padding: 10px 20px 24px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .timeline-segment {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: #1f242e;
+      transition: background 0.3s;
+    }
+
+    .timeline-segment.active {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .timeline-segment.completed {
+      background: #4b5563;
+    }
+
+    /* Drawer / Modal Settings */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: #12151b;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    input[type="number"], input[type="text"], select {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .moves-edit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .move-item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .move-idx-badge {
+      width: 26px;
+      height: 26px;
+      background: var(--card-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .btn-save-settings {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body class="phase-work">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">G</div>
+      <div class="brand-title">Grindin'</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="audioToggleBtn" title="Toggle Suara Audio">
+        <span id="audioIcon">🔊</span> Audio
+      </button>
+      <button class="icon-btn" id="settingsBtn" title="Pengaturan & Edit Gerakan">
+        ⚙️ Edit
+      </button>
+    </div>
+  </header>
+
+  <!-- Day Selector Strip -->
+  <div class="day-strip" id="dayStrip">
+    <div class="day-chip" data-day="senin">Senin</div>
+    <div class="day-chip" data-day="selasa">Selasa</div>
+    <div class="day-chip" data-day="rabu">Rabu</div>
+    <div class="day-chip" data-day="kamis">Kamis</div>
+    <div class="day-chip" data-day="jumat">Jumat</div>
+    <div class="day-chip" data-day="sabtu">Sabtu</div>
+    <div class="day-chip" data-day="minggu">Minggu</div>
+  </div>
+
+  <!-- Main Workout View -->
+  <main>
+    <div class="routine-banner">
+      <div class="routine-day" id="routineDayText">SABTU</div>
+      <div class="routine-focus" id="routineFocusText">Total Body Strength</div>
+    </div>
+
+    <div class="phase-badge" id="phaseBadge">SIAP LATIHAN</div>
+
+    <!-- Giant Numbers -->
+    <div class="timer-display" id="timerDisplay">40</div>
+
+    <!-- Movement Name -->
+    <div class="movement-title" id="movementTitle">Curtsy Lunge</div>
+
+    <!-- Next Up Card during Rest -->
+    <div class="next-up-card" id="nextUpCard">
+      Berikutnya: <span id="nextMoveText">Hand-Release Push-Up</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="progress-stats">
+      <div class="stat-pill">PUTARAN: <b id="roundText">1 / 2</b></div>
+      <div class="stat-pill">GERAKAN: <b id="moveIdxText">1 / 5</b></div>
+    </div>
+
+    <!-- Move Timeline Progress Bar -->
+    <div class="move-timeline" id="moveTimeline">
+      <div class="timeline-segment active"></div>
+      <div class="timeline-segment"></div>
+      <div class="timeline-segment"></div>
+      <div class="timeline-segment"></div>
+      <div class="timeline-segment"></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn-secondary" id="resetBtn" title="Reset Ulang">↺</button>
+      <button class="btn-primary" id="startBtn">
+        <span id="playIcon">▶</span>
+        <span id="playText">MULAI</span>
+      </button>
+      <button class="btn-secondary" id="skipBtn" title="Lewati Interval">⏭</button>
+    </div>
+  </main>
+
+  <!-- Settings / Customizer Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Setup Workout</h3>
+        <button class="close-btn" id="closeSettingsBtn">&times;</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Waktu Kerja (detik)</label>
+          <input type="number" id="inputWorkDuration" value="40" min="5" max="300">
+        </div>
+        <div class="form-group">
+          <label>Waktu Rehat (detik)</label>
+          <input type="number" id="inputRestDuration" value="20" min="5" max="180">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rehat Antar Putaran (detik)</label>
+          <input type="number" id="inputInterRoundRest" value="35" min="10" max="300">
+        </div>
+        <div class="form-group">
+          <label>Jumlah Putaran</label>
+          <input type="number" id="inputTotalRounds" value="2" min="1" max="10">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Pemanasan (detik, 0 = off)</label>
+          <input type="number" id="inputWarmupDuration" value="60" min="0" max="300">
+        </div>
+        <div class="form-group">
+          <label>Pendinginan (detik, 0 = off)</label>
+          <input type="number" id="inputCooldownDuration" value="60" min="0" max="300">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Edit 5 Gerakan (<span id="editDayLabel">Sabtu</span>):</label>
+        <div class="moves-edit-list" id="movesEditList">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <button class="btn-save-settings" id="saveSettingsBtn">Simpan & Terapkan</button>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * Grindin' Hybrid Client Core
+     * ponytail: Fallback JS implementation mirrors the Rust state machine exactly,
+     * ensuring immediate local execution and zero-friction GitHub Pages runtime.
+     */
+
+    // --- DEFAULT SCHEDULE FROM USER'S NOTES ---
+    const DEFAULT_SCHEDULE = {
+      senin: {
+        title: "Senin",
+        focus: "Lower Body & Core",
+        moves: ["Squat", "Reverse Lunge", "Glute Bridge", "Plank Shoulder Tap", "Bicycle Crunch"]
+      },
+      selasa: {
+        title: "Selasa",
+        focus: "Upper Body & Cardio",
+        moves: ["Push-Up", "Mountain Climber", "Pike Push-Up / Downward Dog", "Skater Steps", "Dead Bug"]
+      },
+      rabu: {
+        title: "Rabu",
+        focus: "Full-Body Functional",
+        moves: ["Sumo Squat", "Inchworm", "Bear Crawl Hold", "Lunge to Knee Drive", "High Plank"]
+      },
+      kamis: {
+        title: "Kamis",
+        focus: "Core Stability & Posture",
+        moves: ["Bird-Dog", "Side Plank (Kanan/Kiri)", "Glute Bridge March", "Superman Hold", "Cat-Cow"]
+      },
+      jumat: {
+        title: "Jumat",
+        focus: "HIIT Fat Burn",
+        moves: ["Squat to Calf Raise", "Speed Skaters", "Push-Up to T-Rotation", "High Marching", "Hollow Tuck"]
+      },
+      sabtu: {
+        title: "Sabtu",
+        focus: "Total Body Strength",
+        moves: ["Curtsy Lunge", "Hand-Release Push-Up", "Tabletop Bridge", "Mountain Climber", "Forearm Plank"]
+      },
+      minggu: {
+        title: "Minggu",
+        focus: "Mobility & Active Core",
+        moves: ["Dead Bug", "Bird-Dog", "Glute Bridge Hold", "Child's Pose", "Thoracic Stretch"]
+      }
+    };
+
+    // Load from LocalStorage or default
+    let schedule = JSON.parse(localStorage.getItem('grindin_schedule')) || DEFAULT_SCHEDULE;
+    let config = JSON.parse(localStorage.getItem('grindin_config')) || {
+      workDuration: 40,
+      restDuration: 20,
+      interRoundRest: 35,
+      totalRounds: 2,
+      warmupDuration: 60,
+      cooldownDuration: 60,
+      audioEnabled: true
+    };
+
+    // Determine current day key
+    const daysMap = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+    let currentDayKey = daysMap[new Date().getDay()];
+
+    // State Variables
+    let currentPhase = 'IDLE'; // IDLE, WARMUP, WORK, REST, INTER_ROUND, COOLDOWN, FINISHED
+    let isRunning = false;
+    let timeRemaining = config.workDuration;
+    let currentRound = 1;
+    let currentMoveIdx = 0;
+    let halfwayNotified = false;
+    let timerInterval = null;
+    let wakeLock = null;
+
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playTone(freq, duration = 0.2, type = 'sine', gainVal = 0.3) {
+      if (!config.audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const now = audioCtx.currentTime;
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(gainVal, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {
+        console.warn('Audio tone err:', e);
+      }
+    }
+
+    // Speech Synthesizer
+    function speak(text) {
+      if (!config.audioEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'id-ID';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Keep Screen Awake via Wake Lock API
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.log('WakeLock error:', err);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().then(() => { wakeLock = null; });
+      }
+    }
+
+    // DOM Elements
+    const body = document.body;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const phaseBadge = document.getElementById('phaseBadge');
+    const movementTitle = document.getElementById('movementTitle');
+    const nextUpCard = document.getElementById('nextUpCard');
+    const nextMoveText = document.getElementById('nextMoveText');
+    const roundText = document.getElementById('roundText');
+    const moveIdxText = document.getElementById('moveIdxText');
+    const routineDayText = document.getElementById('routineDayText');
+    const routineFocusText = document.getElementById('routineFocusText');
+    const startBtn = document.getElementById('startBtn');
+    const playText = document.getElementById('playText');
+    const playIcon = document.getElementById('playIcon');
+    const resetBtn = document.getElementById('resetBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const audioToggleBtn = document.getElementById('audioToggleBtn');
+    const audioIcon = document.getElementById('audioIcon');
+    const moveTimeline = document.getElementById('moveTimeline');
+
+    // UI Updates
+    function updateUI() {
+      const routine = schedule[currentDayKey];
+      routineDayText.textContent = routine.title;
+      routineFocusText.textContent = routine.focus;
+
+      timerDisplay.textContent = timeRemaining;
+      roundText.textContent = `${currentRound} / ${config.totalRounds}`;
+      moveIdxText.textContent = `${currentMoveIdx + 1} / ${routine.moves.length}`;
+
+      // Update Phase Styling and Badges
+      body.className = '';
+      if (currentPhase === 'WORK') {
+        body.classList.add('phase-work');
+        phaseBadge.textContent = 'KERJA (WORK)';
+        movementTitle.textContent = routine.moves[currentMoveIdx];
+        nextUpCard.style.opacity = '0.4';
+      } else if (currentPhase === 'REST') {
+        body.classList.add('phase-rest');
+        phaseBadge.textContent = 'ISTIRAHAT (REST)';
+        movementTitle.textContent = 'Tarik Napas & Bersiap';
+        nextUpCard.style.opacity = '1';
+        const nextIdx = currentMoveIdx + 1;
+        const nextMoveName = nextIdx < routine.moves.length ? routine.moves[nextIdx] : (currentRound < config.totalRounds ? routine.moves[0] : 'Pendinginan');
+        nextMoveText.textContent = nextMoveName;
+      } else if (currentPhase === 'INTER_ROUND') {
+        body.classList.add('phase-inter-round');
+        phaseBadge.textContent = 'REHAT PUTARAN';
+        movementTitle.textContent = `Putaran ${currentRound} Selesai!`;
+        nextUpCard.style.opacity = '1';
+        nextMoveText.textContent = `(Putaran ${currentRound + 1}) ${routine.moves[0]}`;
+      } else if (currentPhase === 'WARMUP') {
+        body.classList.add('phase-warmup');
+        phaseBadge.textContent = 'PEMANASAN';
+        movementTitle.textContent = 'Arm / Hip Circles & Marching';
+        nextUpCard.style.opacity = '1';
+        nextMoveText.textContent = routine.moves[0];
+      } else if (currentPhase === 'COOLDOWN') {
+        body.classList.add('phase-cooldown');
+        phaseBadge.textContent = 'PENDINGINAN';
+        movementTitle.textContent = "Child's Pose & Peregangan";
+        nextUpCard.style.opacity = '0';
+      } else if (currentPhase === 'FINISHED') {
+        body.classList.add('phase-work');
+        phaseBadge.textContent = 'LATIHAN SELESAI!';
+        movementTitle.textContent = '🎉 Kerja Bagus Hari Ini!';
+        nextUpCard.style.opacity = '0';
+      } else {
+        // IDLE
+        body.classList.add('phase-work');
+        phaseBadge.textContent = 'SIAP LATIHAN';
+        movementTitle.textContent = routine.moves[0];
+        nextUpCard.style.opacity = '0.8';
+        nextMoveText.textContent = routine.moves[0];
+      }
+
+      // Update Move Timeline Bar
+      renderTimeline();
+
+      // Controls State
+      if (isRunning) {
+        playText.textContent = 'JEDA';
+        playIcon.textContent = '⏸';
+      } else {
+        playText.textContent = currentPhase === 'IDLE' ? 'MULAI' : 'LANJUT';
+        playIcon.textContent = '▶';
+      }
+    }
+
+    function renderTimeline() {
+      const routine = schedule[currentDayKey];
+      moveTimeline.innerHTML = '';
+      routine.moves.forEach((_, idx) => {
+        const seg = document.createElement('div');
+        seg.className = 'timeline-segment';
+        if (idx === currentMoveIdx && currentPhase === 'WORK') {
+          seg.classList.add('active');
+        } else if (idx < currentMoveIdx) {
+          seg.classList.add('completed');
+        }
+        moveTimeline.appendChild(seg);
+      });
+    }
+
+    // State Transitions
+    function startWork() {
+      currentPhase = 'WORK';
+      timeRemaining = config.workDuration;
+      halfwayNotified = false;
+      const routine = schedule[currentDayKey];
+      const mv = routine.moves[currentMoveIdx];
+      updateUI();
+      playTone(1174.66, 0.4); // D6 Chime
+      speak(`${mv}, mulai!`);
+    }
+
+    function startRest() {
+      currentPhase = 'REST';
+      timeRemaining = config.restDuration;
+      const routine = schedule[currentDayKey];
+      const nextIdx = currentMoveIdx + 1;
+      const nextMv = nextIdx < routine.moves.length ? routine.moves[nextIdx] : routine.moves[0];
+      updateUI();
+      playTone(392.0, 0.35); // G4 Tone
+      speak(`Istirahat ${config.restDuration} detik. Berikutnya: ${nextMv}`);
+    }
+
+    function startInterRoundRest() {
+      currentPhase = 'INTER_ROUND';
+      timeRemaining = config.interRoundRest;
+      const routine = schedule[currentDayKey];
+      updateUI();
+      playTone(392.0, 0.4);
+      speak(`Putaran ${currentRound} selesai! Istirahat panjang ${config.interRoundRest} detik. Berikutnya: ${routine.moves[0]}`);
+    }
+
+    function startCooldown() {
+      currentPhase = 'COOLDOWN';
+      timeRemaining = config.cooldownDuration;
+      updateUI();
+      playTone(880.0, 0.4);
+      speak("Pendinginan satu menit. Tarik napas dalam dan rileks.");
+    }
+
+    function finishWorkout() {
+      currentPhase = 'FINISHED';
+      isRunning = false;
+      timeRemaining = 0;
+      clearInterval(timerInterval);
+      releaseWakeLock();
+      updateUI();
+      playTone(1318.51, 0.6);
+      speak("Latihan selesai! Kerja bagus hari ini!");
+    }
+
+    // Tick Engine
+    function tick() {
+      if (!isRunning) return;
+
+      // 3-2-1 Countdown Beeps
+      if (timeRemaining <= 3 && timeRemaining > 0) {
+        playTone(880.0, 0.15); // A5 pip
+      }
+
+      // Halfway Alert (at 50% of work duration)
+      if (currentPhase === 'WORK' && !halfwayNotified) {
+        const half = Math.floor(config.workDuration / 2);
+        if (timeRemaining <= half) {
+          halfwayNotified = true;
+          playTone(659.25, 0.25);
+          speak("Setengah waktu!");
+        }
+      }
+
+      if (timeRemaining > 0) {
+        timeRemaining--;
+        timerDisplay.textContent = timeRemaining;
+      }
+
+      if (timeRemaining === 0) {
+        advancePhase();
+      }
+    }
+
+    function advancePhase() {
+      const routine = schedule[currentDayKey];
+
+      if (currentPhase === 'WARMUP') {
+        currentMoveIdx = 0;
+        startWork();
+      } else if (currentPhase === 'WORK') {
+        const isLastMoveInRound = currentMoveIdx + 1 >= routine.moves.length;
+        if (isLastMoveInRound) {
+          if (currentRound >= config.totalRounds) {
+            if (config.cooldownDuration > 0) {
+              startCooldown();
+            } else {
+              finishWorkout();
+            }
+          } else {
+            startInterRoundRest();
+          }
+        } else {
+          startRest();
+        }
+      } else if (currentPhase === 'REST') {
+        currentMoveIdx++;
+        startWork();
+      } else if (currentPhase === 'INTER_ROUND') {
+        currentRound++;
+        currentMoveIdx = 0;
+        startWork();
+      } else if (currentPhase === 'COOLDOWN') {
+        finishWorkout();
+      }
+    }
+
+    // Controls Handling
+    function handleStartPause() {
+      initAudio();
+      requestWakeLock();
+
+      if (!isRunning) {
+        isRunning = true;
+        if (currentPhase === 'IDLE' || currentPhase === 'FINISHED') {
+          currentRound = 1;
+          currentMoveIdx = 0;
+          if (config.warmupDuration > 0) {
+            currentPhase = 'WARMUP';
+            timeRemaining = config.warmupDuration;
+            speak("Pemanasan satu menit, mulai!");
+            playTone(1174.66, 0.4);
+          } else {
+            startWork();
+          }
+        }
+        clearInterval(timerInterval);
+        timerInterval = setInterval(tick, 1000);
+      } else {
+        isRunning = false;
+        clearInterval(timerInterval);
+        releaseWakeLock();
+      }
+      updateUI();
+    }
+
+    function handleReset() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      releaseWakeLock();
+      currentPhase = 'IDLE';
+      currentRound = 1;
+      currentMoveIdx = 0;
+      timeRemaining = config.workDuration;
+      halfwayNotified = false;
+      updateUI();
+    }
+
+    function handleSkip() {
+      initAudio();
+      if (currentPhase !== 'IDLE' && currentPhase !== 'FINISHED') {
+        timeRemaining = 0;
+        advancePhase();
+        updateUI();
+      }
+    }
+
+    // Day Selection
+    function selectDay(key) {
+      if (isRunning) {
+        if (!confirm("Sedang latihan berjalan. Ingin berganti hari dan me-reset?")) return;
+        handleReset();
+      }
+      currentDayKey = key;
+      document.querySelectorAll('.day-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.day === key);
+      });
+      handleReset();
+    }
+
+    // Settings Modal
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const movesEditList = document.getElementById('movesEditList');
+    const editDayLabel = document.getElementById('editDayLabel');
+
+    function openSettings() {
+      const routine = schedule[currentDayKey];
+      editDayLabel.textContent = routine.title;
+      document.getElementById('inputWorkDuration').value = config.workDuration;
+      document.getElementById('inputRestDuration').value = config.restDuration;
+      document.getElementById('inputInterRoundRest').value = config.interRoundRest;
+      document.getElementById('inputTotalRounds').value = config.totalRounds;
+      document.getElementById('inputWarmupDuration').value = config.warmupDuration;
+      document.getElementById('inputCooldownDuration').value = config.cooldownDuration;
+
+      movesEditList.innerHTML = '';
+      routine.moves.forEach((m, idx) => {
+        const row = document.createElement('div');
+        row.className = 'move-item-row';
+        row.innerHTML = `
+          <div class="move-idx-badge">${idx + 1}</div>
+          <input type="text" class="move-input-field" value="${m}" style="flex:1;">
+        `;
+        movesEditList.appendChild(row);
+      });
+
+      settingsModal.classList.add('open');
+    }
+
+    function saveSettings() {
+      config.workDuration = parseInt(document.getElementById('inputWorkDuration').value, 10) || 40;
+      config.restDuration = parseInt(document.getElementById('inputRestDuration').value, 10) || 20;
+      config.interRoundRest = parseInt(document.getElementById('inputInterRoundRest').value, 10) || 35;
+      config.totalRounds = parseInt(document.getElementById('inputTotalRounds').value, 10) || 2;
+      config.warmupDuration = parseInt(document.getElementById('inputWarmupDuration').value, 10) || 0;
+      config.cooldownDuration = parseInt(document.getElementById('inputCooldownDuration').value, 10) || 0;
+
+      const inputs = movesEditList.querySelectorAll('.move-input-field');
+      const updatedMoves = [];
+      inputs.forEach(inp => {
+        if (inp.value.trim()) updatedMoves.push(inp.value.trim());
+      });
+      if (updatedMoves.length > 0) {
+        schedule[currentDayKey].moves = updatedMoves;
+      }
+
+      localStorage.setItem('grindin_config', JSON.stringify(config));
+      localStorage.setItem('grindin_schedule', JSON.stringify(schedule));
+
+      settingsModal.classList.remove('open');
+      handleReset();
+    }
+
+    // Event Listeners
+    startBtn.addEventListener('click', handleStartPause);
+    resetBtn.addEventListener('click', handleReset);
+    skipBtn.addEventListener('click', handleSkip);
+    settingsBtn.addEventListener('click', openSettings);
+    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
+    saveSettingsBtn.addEventListener('click', saveSettings);
+
+    audioToggleBtn.addEventListener('click', () => {
+      config.audioEnabled = !config.audioEnabled;
+      audioIcon.textContent = config.audioEnabled ? '🔊' : '🔇';
+      localStorage.setItem('grindin_config', JSON.stringify(config));
+    });
+
+    document.querySelectorAll('.day-chip').forEach(chip => {
+      chip.addEventListener('click', () => selectDay(chip.dataset.day));
+    });
+
+    // Auto-select Today on load
+    selectDay(currentDayKey);
+  </script>
+</body>
+</html>

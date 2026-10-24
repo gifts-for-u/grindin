@@ -1,0 +1,36 @@
+[package]
+name = "grindin"
+version = "0.1.0"
+edition = "2021"
+authors = ["Naufal Arif"]
+description = "Grindin' - Hands-Free Daily HICT Interval Workout WebApp in Rust (WASM)"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Window",
+  "Document",
+  "Element",
+  "HtmlElement",
+  "SpeechSynthesis",
+  "SpeechSynthesisUtterance",
+  "AudioContext",
+  "OscillatorNode",
+  "AudioDestinationNode",
+  "GainNode",
+  "Storage",
+  "Performance"
+]
+
+[profile.release]
+opt-level = "s" # ponytail: optimize for small wasm binary size
+lto = true
