@@ -17,6 +17,15 @@
   <link rel="stylesheet" href="https://www.nerdfonts.com/assets/css/webfont.css">
   
   <style>
+    /* Nerd Fonts Symbols Font Definition */
+    @font-face {
+      font-family: 'NerdFontsSymbols Nerd Font';
+      src: url('https://www.nerdfonts.com/assets/fonts/Symbols-2048-em%20Nerd%20Font%20Complete.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+
     :root {
       --bg: #090b0e;
       --card-bg: #14171d;
@@ -45,13 +54,20 @@
       padding: 0;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+    }
+
+    /* JetBrains Mono applied to all text components */
+    body, button, input, select, textarea,
+    .brand-title, .routine-day, .routine-focus,
+    .phase-badge, .timer-display, .movement-title,
+    .next-up-card, .stat-pill, .day-chip,
+    .modal-title, label, .btn-primary, .btn-save-settings {
       font-family: 'JetBrains Mono', monospace;
     }
 
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      font-family: 'JetBrains Mono', monospace;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -66,14 +82,22 @@
     body.phase-cooldown { --accent: var(--color-cooldown); --accent-glow: var(--color-cooldown-glow); }
     body.phase-inter-round { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.28); }
 
-    /* Nerd Font Icon Styling (preserves NF glyph mapping) */
-    .nf {
-      font-family: 'Symbols Nerd Font', 'JetBrainsMono Nerd Font', 'NerdFontsSymbols', monospace !important;
-      font-style: normal;
+    /* Strict Nerd Font Icon Styling (Never let JetBrains Mono override Nerd Fonts) */
+    .nf, [class*="nf-"], [class^="nf-"], i.nf, i.nf:before, [class*="nf-"]:before {
+      font-family: 'NerdFontsSymbols Nerd Font' !important;
+      font-style: normal !important;
+      font-weight: normal !important;
+      font-variant: normal !important;
+      text-transform: none !important;
+      line-height: 1 !important;
       display: inline-block;
-      text-decoration: inherit;
+      speak: never;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .nf {
       font-size: 1.15em;
-      line-height: 1;
       vertical-align: -0.1em;
     }
 
