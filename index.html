@@ -6,11 +6,14 @@
   <title>Grindin' — Daily HICT Interval Workout Timer</title>
   <meta name="description" content="Hands-free, high-contrast daily interval workout timer with English voice & audio cues built in Rust & WebAssembly.">
   <meta name="theme-color" content="#0d0f12">
+
+  <!-- Favicon with nf-fa-fire (SVG Data URI) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'%3E%3Cpath fill='%2310b981' d='M216 23.86c0-23.8-30.65-32.77-44.15-13.04C48 191.85 224 200 224 288c0 35.63-29.11 64.49-64.85 63.99-35.17-.5-63.15-29.82-63.15-64.99 0-25.54 13.06-48.63 33.32-61.94 10.9-7.16 7.64-24.16-5.32-26.68C73.08 188.75 32 236.43 32 288c0 88.37 71.63 160 160 160s160-71.63 160-160c0-117.2-96-170.6-136-264.14z'/%3E%3C/svg%3E">
   
-  <!-- Google Fonts & Nerd Fonts -->
+  <!-- JetBrains Mono Font Everywhere & Nerd Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://www.nerdfonts.com/assets/css/webfont.css">
   
   <style>
@@ -18,6 +21,7 @@
       --bg: #090b0e;
       --card-bg: #14171d;
       --card-border: #232936;
+      --card-border-focus: #3b4457;
       --text-main: #f3f5f8;
       --text-muted: #8b94a5;
       
@@ -41,12 +45,13 @@
       padding: 0;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      font-family: 'JetBrains Mono', monospace;
     }
 
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'JetBrains Mono', monospace;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -61,8 +66,12 @@
     body.phase-cooldown { --accent: var(--color-cooldown); --accent-glow: var(--color-cooldown-glow); }
     body.phase-inter-round { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.28); }
 
-    /* Nerd Font Icon Styling */
+    /* Nerd Font Icon Styling (preserves NF glyph mapping) */
     .nf {
+      font-family: 'Symbols Nerd Font', 'JetBrainsMono Nerd Font', 'NerdFontsSymbols', monospace !important;
+      font-style: normal;
+      display: inline-block;
+      text-decoration: inherit;
       font-size: 1.15em;
       line-height: 1;
       vertical-align: -0.1em;
@@ -105,10 +114,9 @@
     }
 
     .brand-title {
-      font-family: 'Chakra Petch', sans-serif;
-      font-weight: 900;
-      font-size: 1.4rem;
-      letter-spacing: 0.05em;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       background: linear-gradient(90deg, #ffffff, #94a3b8);
       -webkit-background-clip: text;
@@ -126,8 +134,8 @@
       color: var(--text-main);
       padding: 8px 14px;
       border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -135,9 +143,10 @@
       transition: all 0.2s;
     }
 
-    .icon-btn:hover {
+    .icon-btn:hover, .icon-btn:focus-visible {
       border-color: var(--accent);
       box-shadow: 0 0 10px var(--accent-glow);
+      outline: none;
     }
 
     /* Day Selector Tabs */
@@ -156,16 +165,22 @@
     }
 
     .day-chip {
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 20px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
-      font-size: 0.82rem;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 700;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.2s;
+    }
+
+    .day-chip:hover, .day-chip:focus-visible {
+      border-color: var(--accent);
+      color: var(--text-main);
+      outline: none;
     }
 
     .day-chip.active {
@@ -193,11 +208,11 @@
     }
 
     .routine-day {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.16em;
       color: var(--accent);
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .routine-focus {
@@ -210,14 +225,13 @@
     /* Giant Phase Badge */
     .phase-badge {
       display: inline-block;
-      padding: 6px 20px;
+      padding: 6px 22px;
       border-radius: 999px;
       background: var(--accent);
       color: #000;
-      font-family: 'Chakra Petch', sans-serif;
-      font-weight: 900;
-      font-size: 1.1rem;
-      letter-spacing: 0.15em;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       box-shadow: 0 0 25px var(--accent-glow);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -226,11 +240,10 @@
     /* GIANT TIMER DISPLAY */
     .timer-display {
       margin: 10px 0;
-      font-family: 'JetBrains Mono', monospace;
       font-size: clamp(6.5rem, 24vw, 13rem);
       font-weight: 800;
       line-height: 1;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.05em;
       color: var(--accent);
       text-shadow: 0 0 40px var(--accent-glow);
       font-variant-numeric: tabular-nums;
@@ -239,7 +252,7 @@
 
     /* Movement Title */
     .movement-title {
-      font-size: clamp(1.6rem, 5.5vw, 2.7rem);
+      font-size: clamp(1.5rem, 5.2vw, 2.6rem);
       font-weight: 800;
       color: var(--text-main);
       margin-bottom: 8px;
@@ -257,9 +270,9 @@
       border: 1px solid var(--card-border);
       padding: 10px 18px;
       border-radius: 14px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
-      max-width: 450px;
+      max-width: 480px;
       width: 90%;
       margin-bottom: 20px;
       transition: opacity 0.3s;
@@ -282,7 +295,7 @@
       border: 1px solid var(--card-border);
       padding: 8px 16px;
       border-radius: 12px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-muted);
     }
@@ -310,13 +323,14 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       transition: all 0.2s;
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:hover, .btn-secondary:focus-visible {
       border-color: var(--accent);
       transform: scale(1.05);
+      outline: none;
     }
 
     .btn-primary {
@@ -326,9 +340,8 @@
       background: var(--accent);
       color: #000;
       border: none;
-      font-family: 'Chakra Petch', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 900;
+      font-size: 1.3rem;
+      font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       cursor: pointer;
@@ -341,6 +354,11 @@
 
     .btn-primary:active {
       transform: scale(0.96);
+    }
+
+    .btn-primary:focus-visible {
+      outline: 3px solid var(--text-main);
+      outline-offset: 4px;
     }
 
     /* Routine Move List Bar */
@@ -373,7 +391,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.82);
       backdrop-filter: blur(8px);
       z-index: 100;
       display: none;
@@ -391,14 +409,14 @@
       border: 1px solid var(--card-border);
       border-radius: 20px;
       width: 100%;
-      max-width: 520px;
+      max-width: 540px;
       max-height: 90vh;
       overflow-y: auto;
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.85);
     }
 
     .modal-header {
@@ -410,29 +428,31 @@
     }
 
     .modal-title {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       font-weight: 800;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .close-btn {
       background: none;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-muted);
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px;
+      padding: 6px 10px;
       border-radius: 8px;
-      transition: color 0.2s;
+      transition: all 0.2s;
     }
 
-    .close-btn:hover {
+    .close-btn:hover, .close-btn:focus-visible {
       color: var(--text-main);
+      border-color: var(--accent);
+      outline: none;
     }
 
     .form-group {
@@ -442,15 +462,24 @@
     }
 
     .form-group label {
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 700;
       color: var(--text-muted);
+      letter-spacing: 0.02em;
     }
 
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+    }
+
+    /* Custom Number Stepper with Styled Arrows */
+    .number-stepper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
     }
 
     input[type="number"], input[type="text"], select {
@@ -461,10 +490,73 @@
       color: var(--text-main);
       font-size: 0.95rem;
       outline: none;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    /* Hide browser default spin buttons */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+      padding-right: 42px; /* Prevent text overlap with custom arrows */
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
     }
 
     input:focus, select:focus {
       border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Up / Down Arrow Steppers */
+    .stepper-arrow-group {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      bottom: 4px;
+      width: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stepper-arrow {
+      flex: 1;
+      background: #181d26;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+
+    .stepper-arrow:hover, .stepper-arrow:focus-visible {
+      background: #232936;
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      outline: none;
+    }
+
+    .stepper-arrow:active {
+      background: var(--accent);
+      color: #000;
+      transform: scale(0.92);
+    }
+
+    .stepper-arrow .nf {
+      font-size: 0.65rem;
+      line-height: 1;
+      vertical-align: 0;
     }
 
     .moves-edit-list {
@@ -480,15 +572,15 @@
     }
 
     .move-idx-badge {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       background: var(--card-border);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.8rem;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--text-muted);
       flex-shrink: 0;
     }
@@ -500,15 +592,30 @@
       padding: 14px;
       border-radius: 12px;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       margin-top: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-save-settings:hover, .btn-save-settings:focus-visible {
+      box-shadow: 0 0 18px var(--accent-glow);
+      outline: none;
+    }
+
+    /* Accessibility: Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -517,31 +624,31 @@
   <!-- Header -->
   <header>
     <div class="brand">
-      <div class="brand-logo">
+      <div class="brand-logo" aria-hidden="true">
         <i class="nf nf-fa-fire"></i>
       </div>
-      <div class="brand-title">Grindin'</div>
+      <h1 class="brand-title">Grindin'</h1>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="audioToggleBtn" title="Toggle Audio Voice & Beeps">
-        <i class="nf nf-fa-volume_up" id="audioIcon"></i> Audio
+      <button class="icon-btn" id="audioToggleBtn" title="Toggle Audio Voice & Beeps" aria-label="Toggle Audio Voice and Sound Effects">
+        <i class="nf nf-fa-volume_up" id="audioIcon" aria-hidden="true"></i> Audio
       </button>
-      <button class="icon-btn" id="settingsBtn" title="Workout & Movement Setup">
-        <i class="nf nf-fa-cog"></i> Setup
+      <button class="icon-btn" id="settingsBtn" title="Workout & Movement Setup" aria-label="Open Workout Setup Modal">
+        <i class="nf nf-fa-cog" aria-hidden="true"></i> Setup
       </button>
     </div>
   </header>
 
   <!-- Day Selector Strip -->
-  <div class="day-strip" id="dayStrip">
-    <div class="day-chip" data-day="senin">Mon</div>
-    <div class="day-chip" data-day="selasa">Tue</div>
-    <div class="day-chip" data-day="rabu">Wed</div>
-    <div class="day-chip" data-day="kamis">Thu</div>
-    <div class="day-chip" data-day="jumat">Fri</div>
-    <div class="day-chip" data-day="sabtu">Sat</div>
-    <div class="day-chip" data-day="minggu">Sun</div>
-  </div>
+  <nav class="day-strip" id="dayStrip" aria-label="Daily Workout Schedule Tabs">
+    <button type="button" class="day-chip" data-day="senin" aria-label="Monday Workout">Mon</button>
+    <button type="button" class="day-chip" data-day="selasa" aria-label="Tuesday Workout">Tue</button>
+    <button type="button" class="day-chip" data-day="rabu" aria-label="Wednesday Workout">Wed</button>
+    <button type="button" class="day-chip" data-day="kamis" aria-label="Thursday Workout">Thu</button>
+    <button type="button" class="day-chip" data-day="jumat" aria-label="Friday Workout">Fri</button>
+    <button type="button" class="day-chip" data-day="sabtu" aria-label="Saturday Workout">Sat</button>
+    <button type="button" class="day-chip" data-day="minggu" aria-label="Sunday Workout">Sun</button>
+  </nav>
 
   <!-- Main Workout View -->
   <main>
@@ -550,16 +657,16 @@
       <div class="routine-focus" id="routineFocusText">Total Body Strength</div>
     </div>
 
-    <div class="phase-badge" id="phaseBadge">GET READY</div>
+    <div class="phase-badge" id="phaseBadge" role="status" aria-live="polite">GET READY</div>
 
     <!-- Giant Numbers -->
-    <div class="timer-display" id="timerDisplay">40</div>
+    <div class="timer-display" id="timerDisplay" role="timer" aria-live="off" aria-label="Seconds remaining">40</div>
 
     <!-- Movement Name -->
-    <div class="movement-title" id="movementTitle">Curtsy Lunge</div>
+    <div class="movement-title" id="movementTitle" role="heading" aria-level="2">Curtsy Lunge</div>
 
     <!-- Next Up Card during Rest -->
-    <div class="next-up-card" id="nextUpCard">
+    <div class="next-up-card" id="nextUpCard" aria-live="polite">
       Next Up: <span id="nextMoveText">Hand-Release Push-Up</span>
     </div>
 
@@ -570,7 +677,7 @@
     </div>
 
     <!-- Move Timeline Progress Bar -->
-    <div class="move-timeline" id="moveTimeline">
+    <div class="move-timeline" id="moveTimeline" aria-hidden="true">
       <div class="timeline-segment active"></div>
       <div class="timeline-segment"></div>
       <div class="timeline-segment"></div>
@@ -580,61 +687,124 @@
 
     <!-- Controls -->
     <div class="controls">
-      <button class="btn-secondary" id="resetBtn" title="Reset Timer">
-        <i class="nf nf-md-reload"></i>
+      <button type="button" class="btn-secondary" id="resetBtn" title="Reset Timer" aria-label="Reset Timer">
+        <i class="nf nf-md-reload" aria-hidden="true"></i>
       </button>
-      <button class="btn-primary" id="startBtn">
-        <i class="nf nf-fa-play" id="playIcon"></i>
+      <button type="button" class="btn-primary" id="startBtn" aria-label="Start Workout">
+        <i class="nf nf-fa-play" id="playIcon" aria-hidden="true"></i>
         <span id="playText">START</span>
       </button>
-      <button class="btn-secondary" id="skipBtn" title="Skip Interval">
-        <i class="nf nf-fa-forward_step"></i>
+      <button type="button" class="btn-secondary" id="skipBtn" title="Skip Interval" aria-label="Skip Current Interval">
+        <i class="nf nf-fa-forward_step" aria-hidden="true"></i>
       </button>
     </div>
   </main>
 
-  <!-- Settings / Customizer Modal -->
-  <div class="modal-overlay" id="settingsModal">
+  <!-- Settings / Customizer Modal (A11y Compliant) -->
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">
-          <i class="nf nf-fa-sliders"></i> Workout Setup
-        </h3>
-        <button class="close-btn" id="closeSettingsBtn" title="Close">
-          <i class="nf nf-md-close"></i>
+        <h2 class="modal-title" id="modalTitle">
+          <i class="nf nf-fa-sliders" aria-hidden="true"></i> Workout Setup
+        </h2>
+        <button type="button" class="close-btn" id="closeSettingsBtn" title="Close" aria-label="Close Setup Modal">
+          <i class="nf nf-md-close" aria-hidden="true"></i>
         </button>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Work Time (seconds)</label>
-          <input type="number" id="inputWorkDuration" value="40" min="5" max="300">
+          <label for="inputWorkDuration">Work Time (seconds, step 5)</label>
+          <div class="number-stepper">
+            <input type="number" id="inputWorkDuration" value="40" min="5" max="300" step="5" aria-label="Work duration in seconds">
+            <div class="stepper-arrow-group">
+              <button type="button" class="stepper-arrow up" data-target="inputWorkDuration" data-dir="1" aria-label="Increase Work Time by 5 seconds">
+                <i class="nf nf-fa-chevron_up" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="stepper-arrow down" data-target="inputWorkDuration" data-dir="-1" aria-label="Decrease Work Time by 5 seconds">
+                <i class="nf nf-fa-chevron_down" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
+
         <div class="form-group">
-          <label>Rest Time (seconds)</label>
-          <input type="number" id="inputRestDuration" value="20" min="5" max="180">
+          <label for="inputRestDuration">Rest Time (seconds, step 5)</label>
+          <div class="number-stepper">
+            <input type="number" id="inputRestDuration" value="20" min="5" max="180" step="5" aria-label="Rest duration in seconds">
+            <div class="stepper-arrow-group">
+              <button type="button" class="stepper-arrow up" data-target="inputRestDuration" data-dir="1" aria-label="Increase Rest Time by 5 seconds">
+                <i class="nf nf-fa-chevron_up" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="stepper-arrow down" data-target="inputRestDuration" data-dir="-1" aria-label="Decrease Rest Time by 5 seconds">
+                <i class="nf nf-fa-chevron_down" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Round Break (seconds)</label>
-          <input type="number" id="inputInterRoundRest" value="35" min="10" max="300">
+          <label for="inputInterRoundRest">Round Break (seconds, step 5)</label>
+          <div class="number-stepper">
+            <input type="number" id="inputInterRoundRest" value="35" min="5" max="300" step="5" aria-label="Round Break duration in seconds">
+            <div class="stepper-arrow-group">
+              <button type="button" class="stepper-arrow up" data-target="inputInterRoundRest" data-dir="1" aria-label="Increase Round Break by 5 seconds">
+                <i class="nf nf-fa-chevron_up" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="stepper-arrow down" data-target="inputInterRoundRest" data-dir="-1" aria-label="Decrease Round Break by 5 seconds">
+                <i class="nf nf-fa-chevron_down" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
+
         <div class="form-group">
-          <label>Total Rounds</label>
-          <input type="number" id="inputTotalRounds" value="2" min="1" max="10">
+          <label for="inputTotalRounds">Total Rounds</label>
+          <div class="number-stepper">
+            <input type="number" id="inputTotalRounds" value="2" min="1" max="10" step="1" aria-label="Total number of rounds">
+            <div class="stepper-arrow-group">
+              <button type="button" class="stepper-arrow up" data-target="inputTotalRounds" data-dir="1" aria-label="Increase Total Rounds by 1">
+                <i class="nf nf-fa-chevron_up" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="stepper-arrow down" data-target="inputTotalRounds" data-dir="-1" aria-label="Decrease Total Rounds by 1">
+                <i class="nf nf-fa-chevron_down" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Warm-up (seconds, 0 = off)</label>
-          <input type="number" id="inputWarmupDuration" value="60" min="0" max="300">
+          <label for="inputWarmupDuration">Warm-up (seconds, step 5)</label>
+          <div class="number-stepper">
+            <input type="number" id="inputWarmupDuration" value="60" min="0" max="300" step="5" aria-label="Warm-up duration in seconds">
+            <div class="stepper-arrow-group">
+              <button type="button" class="stepper-arrow up" data-target="inputWarmupDuration" data-dir="1" aria-label="Increase Warm-up by 5 seconds">
+                <i class="nf nf-fa-chevron_up" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="stepper-arrow down" data-target="inputWarmupDuration" data-dir="-1" aria-label="Decrease Warm-up by 5 seconds">
+                <i class="nf nf-fa-chevron_down" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
+
         <div class="form-group">
-          <label>Cool-down (seconds, 0 = off)</label>
-          <input type="number" id="inputCooldownDuration" value="60" min="0" max="300">
+          <label for="inputCooldownDuration">Cool-down (seconds, step 5)</label>
+          <div class="number-stepper">
+            <input type="number" id="inputCooldownDuration" value="60" min="0" max="300" step="5" aria-label="Cool-down duration in seconds">
+            <div class="stepper-arrow-group">
+              <button type="button" class="stepper-arrow up" data-target="inputCooldownDuration" data-dir="1" aria-label="Increase Cool-down by 5 seconds">
+                <i class="nf nf-fa-chevron_up" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="stepper-arrow down" data-target="inputCooldownDuration" data-dir="-1" aria-label="Decrease Cool-down by 5 seconds">
+                <i class="nf nf-fa-chevron_down" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -645,8 +815,8 @@
         </div>
       </div>
 
-      <button class="btn-save-settings" id="saveSettingsBtn">
-        <i class="nf nf-fa-check"></i> Save & Apply
+      <button type="button" class="btn-save-settings" id="saveSettingsBtn">
+        <i class="nf nf-fa-check" aria-hidden="true"></i> Save & Apply
       </button>
     </div>
   </div>
@@ -849,7 +1019,7 @@
       } else if (currentPhase === 'FINISHED') {
         body.classList.add('phase-work');
         phaseBadge.textContent = 'WORKOUT FINISHED!';
-        movementTitle.innerHTML = '<i class="nf nf-fa-trophy"></i> Fantastic Job Today!';
+        movementTitle.innerHTML = '<i class="nf nf-fa-trophy" aria-hidden="true"></i> Fantastic Job Today!';
         nextUpCard.style.opacity = '0';
       } else {
         // IDLE
@@ -867,9 +1037,11 @@
       if (isRunning) {
         playText.textContent = 'PAUSE';
         playIcon.className = 'nf nf-fa-pause';
+        startBtn.setAttribute('aria-label', 'Pause Workout');
       } else {
         playText.textContent = currentPhase === 'IDLE' ? 'START' : 'RESUME';
         playIcon.className = 'nf nf-fa-play';
+        startBtn.setAttribute('aria-label', currentPhase === 'IDLE' ? 'Start Workout' : 'Resume Workout');
       }
     }
 
@@ -1059,20 +1231,24 @@
       }
       currentDayKey = key;
       document.querySelectorAll('.day-chip').forEach(chip => {
-        chip.classList.toggle('active', chip.dataset.day === key);
+        const isActive = chip.dataset.day === key;
+        chip.classList.toggle('active', isActive);
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       });
       handleReset();
     }
 
-    // Settings Modal
+    // Settings Modal & Focus Management (A11y)
     const settingsModal = document.getElementById('settingsModal');
     const settingsBtn = document.getElementById('settingsBtn');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const movesEditList = document.getElementById('movesEditList');
     const editDayLabel = document.getElementById('editDayLabel');
+    let previousActiveElement = null;
 
     function openSettings() {
+      previousActiveElement = document.activeElement;
       const routine = schedule[currentDayKey];
       editDayLabel.textContent = routine.title;
       document.getElementById('inputWorkDuration').value = config.workDuration;
@@ -1087,13 +1263,21 @@
         const row = document.createElement('div');
         row.className = 'move-item-row';
         row.innerHTML = `
-          <div class="move-idx-badge">${idx + 1}</div>
-          <input type="text" class="move-input-field" value="${m}" style="flex:1;">
+          <div class="move-idx-badge" aria-hidden="true">${idx + 1}</div>
+          <input type="text" class="move-input-field" value="${m}" aria-label="Exercise ${idx + 1} Name" style="flex:1;">
         `;
         movesEditList.appendChild(row);
       });
 
       settingsModal.classList.add('open');
+      document.getElementById('inputWorkDuration').focus();
+    }
+
+    function closeSettings() {
+      settingsModal.classList.remove('open');
+      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+        previousActiveElement.focus();
+      }
     }
 
     function saveSettings() {
@@ -1116,27 +1300,113 @@
       localStorage.setItem('grindin_config', JSON.stringify(config));
       localStorage.setItem('grindin_schedule', JSON.stringify(schedule));
 
-      settingsModal.classList.remove('open');
+      closeSettings();
       handleReset();
     }
+
+    // Custom Stepper Arrow Logic (Supports Step of 5 & Smooth Repeated Clicking)
+    function setupSteppers() {
+      const arrows = document.querySelectorAll('.stepper-arrow');
+      arrows.forEach(arrow => {
+        const targetId = arrow.dataset.target;
+        const dir = parseInt(arrow.dataset.dir, 10);
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        function stepValue() {
+          const step = parseInt(input.getAttribute('step') || '1', 10);
+          const min = parseInt(input.getAttribute('min') || '0', 10);
+          const max = parseInt(input.getAttribute('max') || '999', 10);
+          let current = parseInt(input.value, 10);
+          if (isNaN(current)) current = min;
+
+          let next = current + (dir * step);
+          if (next < min) next = min;
+          if (next > max) next = max;
+
+          input.value = next;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        let holdTimeout = null;
+        let repeatInterval = null;
+
+        function startStepping(e) {
+          e.preventDefault();
+          stepValue();
+          holdTimeout = setTimeout(() => {
+            repeatInterval = setInterval(stepValue, 100);
+          }, 320);
+        }
+
+        function stopStepping() {
+          clearTimeout(holdTimeout);
+          clearInterval(repeatInterval);
+        }
+
+        arrow.addEventListener('mousedown', startStepping);
+        arrow.addEventListener('mouseup', stopStepping);
+        arrow.addEventListener('mouseleave', stopStepping);
+        arrow.addEventListener('touchstart', startStepping, { passive: false });
+        arrow.addEventListener('touchend', stopStepping);
+        arrow.addEventListener('touchcancel', stopStepping);
+
+        // Keyboard activation on stepper buttons
+        arrow.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            stepValue();
+          }
+        });
+      });
+    }
+
+    // Modal Keyboard Trap & Escape Listener
+    settingsModal.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSettings();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusable = settingsModal.querySelectorAll('button, input, select, [tabindex="0"]');
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
 
     // Event Listeners
     startBtn.addEventListener('click', handleStartPause);
     resetBtn.addEventListener('click', handleReset);
     skipBtn.addEventListener('click', handleSkip);
     settingsBtn.addEventListener('click', openSettings);
-    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
+    closeSettingsBtn.addEventListener('click', closeSettings);
     saveSettingsBtn.addEventListener('click', saveSettings);
 
     audioToggleBtn.addEventListener('click', () => {
       config.audioEnabled = !config.audioEnabled;
       audioIcon.className = config.audioEnabled ? 'nf nf-fa-volume_up' : 'nf nf-fa-volume_off';
+      audioToggleBtn.setAttribute('aria-label', config.audioEnabled ? 'Mute Audio' : 'Unmute Audio');
       localStorage.setItem('grindin_config', JSON.stringify(config));
     });
 
     document.querySelectorAll('.day-chip').forEach(chip => {
       chip.addEventListener('click', () => selectDay(chip.dataset.day));
     });
+
+    // Initialize Stepper Arrows
+    setupSteppers();
 
     // Auto-select Today on load
     selectDay(currentDayKey);
