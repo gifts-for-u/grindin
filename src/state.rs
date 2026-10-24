@@ -35,7 +35,7 @@ impl Default for WorkoutConfig {
             cooldown_duration: 60,
             speech_enabled: true,
             beeps_enabled: true,
-            lang: "id-ID".to_string(),
+            lang: "en-US".to_string(),
         }
     }
 }

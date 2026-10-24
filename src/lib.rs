@@ -78,16 +78,16 @@ impl GrindinEngine {
 
     pub fn start(&mut self) {
         self.state_machine.start();
-        // Initial announce
+        // Initial announce in English
         if self.state_machine.phase == state::Phase::Warmup {
             if self.state_machine.config.speech_enabled {
-                audio::AudioEngine::speak("Pemanasan satu menit, mulai!", &self.state_machine.config.lang);
+                audio::AudioEngine::speak("One minute warm-up. Get ready to move!", &self.state_machine.config.lang);
             }
             self.audio.beep_start();
         } else if self.state_machine.phase == state::Phase::Work {
             let mv = self.state_machine.current_move();
             if self.state_machine.config.speech_enabled {
-                audio::AudioEngine::speak(&format!("{}, mulai!", mv), &self.state_machine.config.lang);
+                audio::AudioEngine::speak(&format!("{}, let's go!", mv), &self.state_machine.config.lang);
             }
             self.audio.beep_start();
         }
@@ -128,7 +128,7 @@ impl GrindinEngine {
                     self.audio.beep_halfway();
                 }
                 if speech {
-                    audio::AudioEngine::speak("Setengah waktu!", lang);
+                    audio::AudioEngine::speak("Halfway through! Keep pushing!", lang);
                 }
             }
             AudioEvent::StartWork(move_name) => {
@@ -136,7 +136,7 @@ impl GrindinEngine {
                     self.audio.beep_start();
                 }
                 if speech {
-                    audio::AudioEngine::speak(&format!("{}, mulai!", move_name), lang);
+                    audio::AudioEngine::speak(&format!("{}, let's go!", move_name), lang);
                 }
             }
             AudioEvent::StartRest { next_move } => {
@@ -144,8 +144,8 @@ impl GrindinEngine {
                     self.audio.beep_rest();
                 }
                 if speech {
-                    let next_str = next_move.map(|m| format!("Berikutnya, {}", m)).unwrap_or_default();
-                    let msg = format!("Istirahat. {}", next_str);
+                    let next_str = next_move.map(|m| format!("Next up: {}", m)).unwrap_or_default();
+                    let msg = format!("Rest. {}", next_str);
                     audio::AudioEngine::speak(&msg, lang);
                 }
             }
@@ -154,8 +154,8 @@ impl GrindinEngine {
                     self.audio.beep_rest();
                 }
                 if speech {
-                    let next_str = next_move.map(|m| format!("Berikutnya, {}", m)).unwrap_or_default();
-                    let msg = format!("Putaran {} selesai! Istirahat panjang. {}", round_completed, next_str);
+                    let next_str = next_move.map(|m| format!("Next up: {}", m)).unwrap_or_default();
+                    let msg = format!("Round {} complete! Long rest. {}", round_completed, next_str);
                     audio::AudioEngine::speak(&msg, lang);
                 }
             }
@@ -164,7 +164,7 @@ impl GrindinEngine {
                     self.audio.beep_start();
                 }
                 if speech {
-                    audio::AudioEngine::speak("Pendinginan satu menit. Tarik napas dalam.", lang);
+                    audio::AudioEngine::speak("Cool down for one minute. Deep breaths and stretch.", lang);
                 }
             }
             AudioEvent::WorkoutFinished => {
@@ -172,7 +172,7 @@ impl GrindinEngine {
                     self.audio.beep_start();
                 }
                 if speech {
-                    audio::AudioEngine::speak("Latihan selesai! Kerja bagus hari ini!", lang);
+                    audio::AudioEngine::speak("Workout complete! Fantastic job today!", lang);
                 }
             }
         }

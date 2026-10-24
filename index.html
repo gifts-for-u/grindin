@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Grindin' — Daily HICT Interval Workout Timer</title>
-  <meta name="description" content="Hands-free, high-contrast daily interval workout timer with voice & audio cues built in Rust & WebAssembly.">
+  <meta name="description" content="Hands-free, high-contrast daily interval workout timer with English voice & audio cues built in Rust & WebAssembly.">
   <meta name="theme-color" content="#0d0f12">
+  
+  <!-- Google Fonts & Nerd Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;900&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://www.nerdfonts.com/assets/css/webfont.css">
+  
   <style>
     :root {
       --bg: #090b0e;
@@ -57,6 +61,13 @@
     body.phase-cooldown { --accent: var(--color-cooldown); --accent-glow: var(--color-cooldown-glow); }
     body.phase-inter-round { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.28); }
 
+    /* Nerd Font Icon Styling */
+    .nf {
+      font-size: 1.15em;
+      line-height: 1;
+      vertical-align: -0.1em;
+    }
+
     /* Top Navigation */
     header {
       padding: 16px 20px;
@@ -74,22 +85,23 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .brand-logo {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       background: linear-gradient(135deg, #10b981, #06b6d4);
-      border-radius: 8px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Chakra Petch', sans-serif;
-      font-weight: 900;
-      font-size: 1.2rem;
       color: #000;
       box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-logo .nf {
+      font-size: 1.4rem;
     }
 
     .brand-title {
@@ -105,7 +117,7 @@
 
     .header-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
 
     .icon-btn {
@@ -119,7 +131,7 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.2s;
     }
 
@@ -400,14 +412,27 @@
     .modal-title {
       font-size: 1.3rem;
       font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .close-btn {
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 8px;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: var(--text-main);
     }
 
     .form-group {
@@ -480,6 +505,10 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
   </style>
 </head>
@@ -488,38 +517,40 @@
   <!-- Header -->
   <header>
     <div class="brand">
-      <div class="brand-logo">G</div>
+      <div class="brand-logo">
+        <i class="nf nf-fa-fire"></i>
+      </div>
       <div class="brand-title">Grindin'</div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="audioToggleBtn" title="Toggle Suara Audio">
-        <span id="audioIcon">🔊</span> Audio
+      <button class="icon-btn" id="audioToggleBtn" title="Toggle Audio Voice & Beeps">
+        <i class="nf nf-fa-volume_up" id="audioIcon"></i> Audio
       </button>
-      <button class="icon-btn" id="settingsBtn" title="Pengaturan & Edit Gerakan">
-        ⚙️ Edit
+      <button class="icon-btn" id="settingsBtn" title="Workout & Movement Setup">
+        <i class="nf nf-fa-cog"></i> Setup
       </button>
     </div>
   </header>
 
   <!-- Day Selector Strip -->
   <div class="day-strip" id="dayStrip">
-    <div class="day-chip" data-day="senin">Senin</div>
-    <div class="day-chip" data-day="selasa">Selasa</div>
-    <div class="day-chip" data-day="rabu">Rabu</div>
-    <div class="day-chip" data-day="kamis">Kamis</div>
-    <div class="day-chip" data-day="jumat">Jumat</div>
-    <div class="day-chip" data-day="sabtu">Sabtu</div>
-    <div class="day-chip" data-day="minggu">Minggu</div>
+    <div class="day-chip" data-day="senin">Mon</div>
+    <div class="day-chip" data-day="selasa">Tue</div>
+    <div class="day-chip" data-day="rabu">Wed</div>
+    <div class="day-chip" data-day="kamis">Thu</div>
+    <div class="day-chip" data-day="jumat">Fri</div>
+    <div class="day-chip" data-day="sabtu">Sat</div>
+    <div class="day-chip" data-day="minggu">Sun</div>
   </div>
 
   <!-- Main Workout View -->
   <main>
     <div class="routine-banner">
-      <div class="routine-day" id="routineDayText">SABTU</div>
+      <div class="routine-day" id="routineDayText">SATURDAY</div>
       <div class="routine-focus" id="routineFocusText">Total Body Strength</div>
     </div>
 
-    <div class="phase-badge" id="phaseBadge">SIAP LATIHAN</div>
+    <div class="phase-badge" id="phaseBadge">GET READY</div>
 
     <!-- Giant Numbers -->
     <div class="timer-display" id="timerDisplay">40</div>
@@ -529,13 +560,13 @@
 
     <!-- Next Up Card during Rest -->
     <div class="next-up-card" id="nextUpCard">
-      Berikutnya: <span id="nextMoveText">Hand-Release Push-Up</span>
+      Next Up: <span id="nextMoveText">Hand-Release Push-Up</span>
     </div>
 
     <!-- Stats -->
     <div class="progress-stats">
-      <div class="stat-pill">PUTARAN: <b id="roundText">1 / 2</b></div>
-      <div class="stat-pill">GERAKAN: <b id="moveIdxText">1 / 5</b></div>
+      <div class="stat-pill">ROUND: <b id="roundText">1 / 2</b></div>
+      <div class="stat-pill">EXERCISE: <b id="moveIdxText">1 / 5</b></div>
     </div>
 
     <!-- Move Timeline Progress Bar -->
@@ -549,12 +580,16 @@
 
     <!-- Controls -->
     <div class="controls">
-      <button class="btn-secondary" id="resetBtn" title="Reset Ulang">↺</button>
-      <button class="btn-primary" id="startBtn">
-        <span id="playIcon">▶</span>
-        <span id="playText">MULAI</span>
+      <button class="btn-secondary" id="resetBtn" title="Reset Timer">
+        <i class="nf nf-md-reload"></i>
       </button>
-      <button class="btn-secondary" id="skipBtn" title="Lewati Interval">⏭</button>
+      <button class="btn-primary" id="startBtn">
+        <i class="nf nf-fa-play" id="playIcon"></i>
+        <span id="playText">START</span>
+      </button>
+      <button class="btn-secondary" id="skipBtn" title="Skip Interval">
+        <i class="nf nf-fa-forward_step"></i>
+      </button>
     </div>
   </main>
 
@@ -562,51 +597,57 @@
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">⚙️ Setup Workout</h3>
-        <button class="close-btn" id="closeSettingsBtn">&times;</button>
+        <h3 class="modal-title">
+          <i class="nf nf-fa-sliders"></i> Workout Setup
+        </h3>
+        <button class="close-btn" id="closeSettingsBtn" title="Close">
+          <i class="nf nf-md-close"></i>
+        </button>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Waktu Kerja (detik)</label>
+          <label>Work Time (seconds)</label>
           <input type="number" id="inputWorkDuration" value="40" min="5" max="300">
         </div>
         <div class="form-group">
-          <label>Waktu Rehat (detik)</label>
+          <label>Rest Time (seconds)</label>
           <input type="number" id="inputRestDuration" value="20" min="5" max="180">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Rehat Antar Putaran (detik)</label>
+          <label>Round Break (seconds)</label>
           <input type="number" id="inputInterRoundRest" value="35" min="10" max="300">
         </div>
         <div class="form-group">
-          <label>Jumlah Putaran</label>
+          <label>Total Rounds</label>
           <input type="number" id="inputTotalRounds" value="2" min="1" max="10">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Pemanasan (detik, 0 = off)</label>
+          <label>Warm-up (seconds, 0 = off)</label>
           <input type="number" id="inputWarmupDuration" value="60" min="0" max="300">
         </div>
         <div class="form-group">
-          <label>Pendinginan (detik, 0 = off)</label>
+          <label>Cool-down (seconds, 0 = off)</label>
           <input type="number" id="inputCooldownDuration" value="60" min="0" max="300">
         </div>
       </div>
 
       <div class="form-group">
-        <label>Edit 5 Gerakan (<span id="editDayLabel">Sabtu</span>):</label>
+        <label>Edit 5 Exercises (<span id="editDayLabel">Saturday</span>):</label>
         <div class="moves-edit-list" id="movesEditList">
           <!-- Populated dynamically -->
         </div>
       </div>
 
-      <button class="btn-save-settings" id="saveSettingsBtn">Simpan & Terapkan</button>
+      <button class="btn-save-settings" id="saveSettingsBtn">
+        <i class="nf nf-fa-check"></i> Save & Apply
+      </button>
     </div>
   </div>
 
@@ -620,37 +661,37 @@
     // --- DEFAULT SCHEDULE FROM USER'S NOTES ---
     const DEFAULT_SCHEDULE = {
       senin: {
-        title: "Senin",
+        title: "Monday",
         focus: "Lower Body & Core",
         moves: ["Squat", "Reverse Lunge", "Glute Bridge", "Plank Shoulder Tap", "Bicycle Crunch"]
       },
       selasa: {
-        title: "Selasa",
+        title: "Tuesday",
         focus: "Upper Body & Cardio",
         moves: ["Push-Up", "Mountain Climber", "Pike Push-Up / Downward Dog", "Skater Steps", "Dead Bug"]
       },
       rabu: {
-        title: "Rabu",
+        title: "Wednesday",
         focus: "Full-Body Functional",
         moves: ["Sumo Squat", "Inchworm", "Bear Crawl Hold", "Lunge to Knee Drive", "High Plank"]
       },
       kamis: {
-        title: "Kamis",
+        title: "Thursday",
         focus: "Core Stability & Posture",
-        moves: ["Bird-Dog", "Side Plank (Kanan/Kiri)", "Glute Bridge March", "Superman Hold", "Cat-Cow"]
+        moves: ["Bird-Dog", "Side Plank (Right/Left)", "Glute Bridge March", "Superman Hold", "Cat-Cow"]
       },
       jumat: {
-        title: "Jumat",
+        title: "Friday",
         focus: "HIIT Fat Burn",
         moves: ["Squat to Calf Raise", "Speed Skaters", "Push-Up to T-Rotation", "High Marching", "Hollow Tuck"]
       },
       sabtu: {
-        title: "Sabtu",
+        title: "Saturday",
         focus: "Total Body Strength",
         moves: ["Curtsy Lunge", "Hand-Release Push-Up", "Tabletop Bridge", "Mountain Climber", "Forearm Plank"]
       },
       minggu: {
-        title: "Minggu",
+        title: "Sunday",
         focus: "Mobility & Active Core",
         moves: ["Dead Bug", "Bird-Dog", "Glute Bridge Hold", "Child's Pose", "Thoracic Stretch"]
       }
@@ -715,12 +756,12 @@
       }
     }
 
-    // Speech Synthesizer
+    // Speech Synthesizer (English voice)
     function speak(text) {
       if (!config.audioEnabled || !('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'id-ID';
+      utterance.lang = 'en-US';
       utterance.rate = 1.05;
       utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
@@ -766,7 +807,7 @@
     // UI Updates
     function updateUI() {
       const routine = schedule[currentDayKey];
-      routineDayText.textContent = routine.title;
+      routineDayText.textContent = routine.title.toUpperCase();
       routineFocusText.textContent = routine.focus;
 
       timerDisplay.textContent = timeRemaining;
@@ -777,43 +818,43 @@
       body.className = '';
       if (currentPhase === 'WORK') {
         body.classList.add('phase-work');
-        phaseBadge.textContent = 'KERJA (WORK)';
+        phaseBadge.textContent = 'WORK';
         movementTitle.textContent = routine.moves[currentMoveIdx];
         nextUpCard.style.opacity = '0.4';
       } else if (currentPhase === 'REST') {
         body.classList.add('phase-rest');
-        phaseBadge.textContent = 'ISTIRAHAT (REST)';
-        movementTitle.textContent = 'Tarik Napas & Bersiap';
+        phaseBadge.textContent = 'REST';
+        movementTitle.textContent = 'Catch Your Breath';
         nextUpCard.style.opacity = '1';
         const nextIdx = currentMoveIdx + 1;
-        const nextMoveName = nextIdx < routine.moves.length ? routine.moves[nextIdx] : (currentRound < config.totalRounds ? routine.moves[0] : 'Pendinginan');
+        const nextMoveName = nextIdx < routine.moves.length ? routine.moves[nextIdx] : (currentRound < config.totalRounds ? routine.moves[0] : 'Cool-down');
         nextMoveText.textContent = nextMoveName;
       } else if (currentPhase === 'INTER_ROUND') {
         body.classList.add('phase-inter-round');
-        phaseBadge.textContent = 'REHAT PUTARAN';
-        movementTitle.textContent = `Putaran ${currentRound} Selesai!`;
+        phaseBadge.textContent = 'ROUND BREAK';
+        movementTitle.textContent = `Round ${currentRound} Complete!`;
         nextUpCard.style.opacity = '1';
-        nextMoveText.textContent = `(Putaran ${currentRound + 1}) ${routine.moves[0]}`;
+        nextMoveText.textContent = `(Round ${currentRound + 1}) ${routine.moves[0]}`;
       } else if (currentPhase === 'WARMUP') {
         body.classList.add('phase-warmup');
-        phaseBadge.textContent = 'PEMANASAN';
-        movementTitle.textContent = 'Arm / Hip Circles & Marching';
+        phaseBadge.textContent = 'WARM-UP';
+        movementTitle.textContent = 'Arm Circles, Hip Circles & Marching';
         nextUpCard.style.opacity = '1';
         nextMoveText.textContent = routine.moves[0];
       } else if (currentPhase === 'COOLDOWN') {
         body.classList.add('phase-cooldown');
-        phaseBadge.textContent = 'PENDINGINAN';
-        movementTitle.textContent = "Child's Pose & Peregangan";
+        phaseBadge.textContent = 'COOL-DOWN';
+        movementTitle.textContent = "Child's Pose & Stretching";
         nextUpCard.style.opacity = '0';
       } else if (currentPhase === 'FINISHED') {
         body.classList.add('phase-work');
-        phaseBadge.textContent = 'LATIHAN SELESAI!';
-        movementTitle.textContent = '🎉 Kerja Bagus Hari Ini!';
+        phaseBadge.textContent = 'WORKOUT FINISHED!';
+        movementTitle.innerHTML = '<i class="nf nf-fa-trophy"></i> Fantastic Job Today!';
         nextUpCard.style.opacity = '0';
       } else {
         // IDLE
         body.classList.add('phase-work');
-        phaseBadge.textContent = 'SIAP LATIHAN';
+        phaseBadge.textContent = 'GET READY';
         movementTitle.textContent = routine.moves[0];
         nextUpCard.style.opacity = '0.8';
         nextMoveText.textContent = routine.moves[0];
@@ -824,11 +865,11 @@
 
       // Controls State
       if (isRunning) {
-        playText.textContent = 'JEDA';
-        playIcon.textContent = '⏸';
+        playText.textContent = 'PAUSE';
+        playIcon.className = 'nf nf-fa-pause';
       } else {
-        playText.textContent = currentPhase === 'IDLE' ? 'MULAI' : 'LANJUT';
-        playIcon.textContent = '▶';
+        playText.textContent = currentPhase === 'IDLE' ? 'START' : 'RESUME';
+        playIcon.className = 'nf nf-fa-play';
       }
     }
 
@@ -856,7 +897,7 @@
       const mv = routine.moves[currentMoveIdx];
       updateUI();
       playTone(1174.66, 0.4); // D6 Chime
-      speak(`${mv}, mulai!`);
+      speak(`${mv}, let's go!`);
     }
 
     function startRest() {
@@ -867,7 +908,7 @@
       const nextMv = nextIdx < routine.moves.length ? routine.moves[nextIdx] : routine.moves[0];
       updateUI();
       playTone(392.0, 0.35); // G4 Tone
-      speak(`Istirahat ${config.restDuration} detik. Berikutnya: ${nextMv}`);
+      speak(`Rest for ${config.restDuration} seconds. Next up: ${nextMv}`);
     }
 
     function startInterRoundRest() {
@@ -876,7 +917,7 @@
       const routine = schedule[currentDayKey];
       updateUI();
       playTone(392.0, 0.4);
-      speak(`Putaran ${currentRound} selesai! Istirahat panjang ${config.interRoundRest} detik. Berikutnya: ${routine.moves[0]}`);
+      speak(`Round ${currentRound} complete! Long rest for ${config.interRoundRest} seconds. Next up: ${routine.moves[0]}`);
     }
 
     function startCooldown() {
@@ -884,7 +925,7 @@
       timeRemaining = config.cooldownDuration;
       updateUI();
       playTone(880.0, 0.4);
-      speak("Pendinginan satu menit. Tarik napas dalam dan rileks.");
+      speak("Cool down for one minute. Deep breaths and stretch.");
     }
 
     function finishWorkout() {
@@ -895,7 +936,7 @@
       releaseWakeLock();
       updateUI();
       playTone(1318.51, 0.6);
-      speak("Latihan selesai! Kerja bagus hari ini!");
+      speak("Workout complete! Fantastic job today!");
     }
 
     // Tick Engine
@@ -913,7 +954,7 @@
         if (timeRemaining <= half) {
           halfwayNotified = true;
           playTone(659.25, 0.25);
-          speak("Setengah waktu!");
+          speak("Halfway through! Keep pushing!");
         }
       }
 
@@ -973,7 +1014,7 @@
           if (config.warmupDuration > 0) {
             currentPhase = 'WARMUP';
             timeRemaining = config.warmupDuration;
-            speak("Pemanasan satu menit, mulai!");
+            speak("One minute warm-up. Get ready to move!");
             playTone(1174.66, 0.4);
           } else {
             startWork();
@@ -1013,7 +1054,7 @@
     // Day Selection
     function selectDay(key) {
       if (isRunning) {
-        if (!confirm("Sedang latihan berjalan. Ingin berganti hari dan me-reset?")) return;
+        if (!confirm("Workout is active. Reset and change day?")) return;
         handleReset();
       }
       currentDayKey = key;
@@ -1089,7 +1130,7 @@
 
     audioToggleBtn.addEventListener('click', () => {
       config.audioEnabled = !config.audioEnabled;
-      audioIcon.textContent = config.audioEnabled ? '🔊' : '🔇';
+      audioIcon.className = config.audioEnabled ? 'nf nf-fa-volume_up' : 'nf nf-fa-volume_off';
       localStorage.setItem('grindin_config', JSON.stringify(config));
     });
 
