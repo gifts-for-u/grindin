@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Grindin' — Daily HICT Interval Workout Timer</title>
-  <meta name="description" content="Hands-free, high-contrast daily interval workout timer with English voice & audio cues built in Rust & WebAssembly.">
+  <title>Grindin' — Scientific HICT Morning Workout Timer</title>
+  <meta name="description" content="Scientific, hands-free morning HICT interval workout timer with posture cues & English audio built in Rust & WebAssembly.">
   <meta name="theme-color" content="#0d0f12">
 
   <!-- Favicon with nf-fa-fire (SVG Data URI) -->
@@ -61,7 +61,8 @@
     .brand-title, .routine-day, .routine-focus,
     .phase-badge, .timer-display, .movement-title,
     .next-up-card, .stat-pill, .day-chip,
-    .modal-title, label, .btn-primary, .btn-save-settings {
+    .modal-title, label, .btn-primary, .btn-save-settings,
+    .muscle-pill, .form-cue-card, .next-badge, .next-up-cue {
       font-family: 'JetBrains Mono', monospace;
     }
 
@@ -82,7 +83,7 @@
     body.phase-cooldown { --accent: var(--color-cooldown); --accent-glow: var(--color-cooldown-glow); }
     body.phase-inter-round { --accent: #ec4899; --accent-glow: rgba(236, 72, 153, 0.28); }
 
-    /* Strict Nerd Font Icon Styling (Never let JetBrains Mono override Nerd Fonts) */
+    /* Strict Nerd Font Icon Styling */
     .nf, [class*="nf-"], [class^="nf-"], i.nf, i.nf:before, [class*="nf-"]:before {
       font-family: 'NerdFontsSymbols Nerd Font' !important;
       font-style: normal !important;
@@ -228,7 +229,7 @@
     }
 
     .routine-banner {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .routine-day {
@@ -254,7 +255,7 @@
       background: var(--accent);
       color: #000;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.95rem;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       box-shadow: 0 0 25px var(--accent-glow);
@@ -263,7 +264,7 @@
 
     /* GIANT TIMER DISPLAY */
     .timer-display {
-      margin: 10px 0;
+      margin: 8px 0;
       font-size: clamp(6.5rem, 24vw, 13rem);
       font-weight: 800;
       line-height: 1;
@@ -276,42 +277,112 @@
 
     /* Movement Title */
     .movement-title {
-      font-size: clamp(1.5rem, 5.2vw, 2.6rem);
+      font-size: clamp(1.4rem, 4.8vw, 2.5rem);
       font-weight: 800;
       color: var(--text-main);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       max-width: 90%;
-      min-height: 2.4em;
+      min-height: 1.6em;
       display: flex;
       align-items: center;
       justify-content: center;
       line-height: 1.2;
     }
 
-    /* Next Up Card */
+    /* Form Cue & Muscle Target Container */
+    .form-cue-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      max-width: 640px;
+      width: 92%;
+      margin: 0 auto 12px;
+      transition: all 0.3s ease;
+    }
+
+    .muscle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+
+    .form-cue-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    /* Next Up Card during Rest */
     .next-up-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      padding: 10px 18px;
       border-radius: 14px;
-      font-size: 0.9rem;
+      padding: 10px 16px;
+      font-size: 0.88rem;
       color: var(--text-muted);
-      max-width: 480px;
-      width: 90%;
-      margin-bottom: 20px;
-      transition: opacity 0.3s;
+      max-width: 640px;
+      width: 92%;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+      transition: all 0.3s;
     }
 
-    .next-up-card span {
+    .next-up-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .next-badge {
+      background: var(--color-rest);
+      color: #000;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.08em;
+    }
+
+    .next-up-header b {
       color: var(--text-main);
-      font-weight: 700;
+      font-weight: 800;
+    }
+
+    .next-up-cue {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      font-style: italic;
     }
 
     /* Progress Stats Pills */
     .progress-stats {
       display: flex;
       gap: 14px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .stat-pill {
@@ -333,7 +404,7 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-top: 10px;
+      margin-top: 6px;
     }
 
     .btn-secondary {
@@ -389,7 +460,7 @@
     .move-timeline {
       width: 100%;
       max-width: 600px;
-      padding: 10px 20px 24px;
+      padding: 10px 20px 20px;
       display: flex;
       gap: 6px;
     }
@@ -527,7 +598,7 @@
     input[type="number"] {
       -moz-appearance: textfield;
       appearance: textfield;
-      padding-right: 42px; /* Prevent text overlap with custom arrows */
+      padding-right: 42px;
       font-variant-numeric: tabular-nums;
       font-weight: 700;
     }
@@ -537,7 +608,6 @@
       box-shadow: 0 0 10px var(--accent-glow);
     }
 
-    /* Up / Down Arrow Steppers */
     .stepper-arrow-group {
       position: absolute;
       right: 4px;
@@ -633,7 +703,6 @@
       outline: none;
     }
 
-    /* Accessibility: Reduced motion support */
     @media (prefers-reduced-motion: reduce) {
       * {
         animation-duration: 0.01ms !important;
@@ -689,9 +758,24 @@
     <!-- Movement Name -->
     <div class="movement-title" id="movementTitle" role="heading" aria-level="2">Curtsy Lunge</div>
 
+    <!-- Form Guide Cards (Active Exercise Cue & Muscle Target) -->
+    <div class="form-cue-container" id="formCueContainer">
+      <div class="muscle-pill" id="musclePill">
+        <i class="nf nf-fa-crosshairs" aria-hidden="true"></i> <span id="muscleText">Gluteus medius, paha luar & stabilitas panggul</span>
+      </div>
+      <div class="form-cue-card" id="formCueCard">
+        <i class="nf nf-fa-bullhorn" aria-hidden="true"></i> <span id="formCueText">Silangkan satu kaki ke belakang menyerong, tekuk kedua lutut stabil, dada tetap tegap.</span>
+      </div>
+    </div>
+
     <!-- Next Up Card during Rest -->
     <div class="next-up-card" id="nextUpCard" aria-live="polite">
-      Next Up: <span id="nextMoveText">Hand-Release Push-Up</span>
+      <div class="next-up-header">
+        <span class="next-badge">NEXT UP</span> <b id="nextMoveText">Hand-Release Push-Up</b> • <span id="nextPosText">Tengkurap di lantai</span>
+      </div>
+      <div class="next-up-cue" id="nextCueText">
+        Turunkan badan sampai dada menyentuh lantai, angkat telapak sesaat, lalu dorong ke atas.
+      </div>
     </div>
 
     <!-- Stats -->
@@ -852,47 +936,135 @@
      * ensuring immediate local execution and zero-friction GitHub Pages runtime.
      */
 
-    // --- DEFAULT SCHEDULE FROM USER'S NOTES ---
+    // --- CANONICAL SCIENTIFIC SCHEDULE WITH RICH METADATA ---
+    const WARMUP_DEFAULT = [
+      "Putar lengan (arm circles) ke depan & belakang (30s)",
+      "Putar pinggul (hip circles) melingkar (30s)",
+      "Jalan santai di tempat (marching in place) (30s)"
+    ];
+
+    const COOLDOWN_DEFAULT = [
+      "Child's pose dekompresi tulang belakang (30s)",
+      "Peregangan dada dan paha depan perlahan (30s)"
+    ];
+
     const DEFAULT_SCHEDULE = {
       senin: {
         title: "Monday",
         focus: "Lower Body & Core",
-        moves: ["Squat", "Reverse Lunge", "Glute Bridge", "Plank Shoulder Tap", "Bicycle Crunch"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Squat", muscle: "Paha depan (quads), bokong (glutes) & core", cue: "Turunkan pinggul seperti duduk di kursi, lutut sejajar ujung jari, dada tetap tegap.", pos: "Posisi berdiri" },
+          { name: "Reverse Lunge", muscle: "Paha depan, hamstring, glutes & stabilitas satu kaki", cue: "Langkahkan kaki ke belakang, tekuk kedua lutut 90 derajat tanpa membentur lantai.", pos: "Posisi berdiri" },
+          { name: "Glute Bridge", muscle: "Rantai posterior, gluteus maximus & hamstring", cue: "Tekan tumit ke lantai, dorong pinggul ke atas hingga lurus dengan paha, tahan 1 detik.", pos: "Telentang di matras" },
+          { name: "Plank Shoulder Tap", muscle: "Stabilitas anti-rotasi inti, bahu & pektoralis", cue: "Tepuk bahu berlawanan perlahan, kunci panggul agar tidak bergoyang ke samping.", pos: "Posisi high plank" },
+          { name: "Bicycle Crunch", muscle: "Otot obliq samping perut & rektus abdominis", cue: "Putar bahu ke arah lutut yang ditarik, jangan menarik leher dengan tangan.", pos: "Telentang di matras" }
+        ]
       },
       selasa: {
         title: "Tuesday",
         focus: "Upper Body & Cardio",
-        moves: ["Push-Up", "Mountain Climber", "Pike Push-Up / Downward Dog", "Skater Steps", "Dead Bug"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Push-Up", muscle: "Dada (pectoralis), bahu anterior & trisep", cue: "Turunkan dada terkontrol, siku membentuk sudut 45 derajat, badan lurus seperti papan.", pos: "Posisi plank di lantai" },
+          { name: "Mountain Climber", muscle: "Pemacu kardio, fleksor panggul & perut bawah", cue: "Tarik lutut bergantian ke dada dengan ritme stabil tanpa mengangkat pinggul terlalu tinggi.", pos: "Posisi high plank" },
+          { name: "Pike Push-Up / Downward Dog", muscle: "Deltoid bahu atas, trisep & mobilitas hamstring", cue: "Angkat pinggul membentuk huruf V terbalik, tekuk siku dorong kepala ke arah lantai.", pos: "Posisi V terbalik di lantai" },
+          { name: "Skater Steps", muscle: "Daya ledak lateral, gluteus medius & stabilitas lutut", cue: "Lompat/langkah menyamping dari satu kaki ke kaki lain, tekuk lutut untuk meredam pendaratan.", pos: "Posisi berdiri" },
+          { name: "Dead Bug", muscle: "Stabilitas anterior inti dalam & kontrol pelvis", cue: "Turunkan lengan dan kaki berlawanan perlahan sambil menempelkan pinggang bawah rata ke lantai.", pos: "Telentang di matras" }
+        ]
       },
       rabu: {
         title: "Wednesday",
         focus: "Full-Body Functional",
-        moves: ["Sumo Squat", "Inchworm", "Bear Crawl Hold", "Lunge to Knee Drive", "High Plank"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Sumo Squat", muscle: "Paha dalam (adductor), glutes & quads", cue: "Buka kaki lebih lebar dari bahu dengan ujung jari menyerong 45°, turunkan pinggul dalam.", pos: "Posisi berdiri lebar" },
+          { name: "Inchworm", muscle: "Mobilitas hamstring, kekuatan bahu & core", cue: "Bungkukkan badan, jalankan telapak tangan ke depan sampai posisi plank lalu jalan mundur.", pos: "Berdiri lalu merangkak" },
+          { name: "Bear Crawl Hold", muscle: "Otot inti dalam, bahu & fleksor panggul", cue: "Posisi merangkak dengan lutut melayang 2-3 cm dari lantai, jaga punggung tetap rata.", pos: "Posisi merangkak (quadrupedal)" },
+          { name: "Lunge to Knee Drive", muscle: "Glutes, paha, keseimbangan dinamis & kardio", cue: "Lunge ke belakang lalu dorong lutut yang sama ke arah dada secara bertenaga.", pos: "Posisi berdiri" },
+          { name: "High Plank", muscle: "Total core isometric, bahu & scapular stability", cue: "Tumpu pada telapak tangan lurus, kunci perut dan glutes, dorong lantai menjauh.", pos: "Posisi high plank" }
+        ]
       },
       kamis: {
         title: "Thursday",
         focus: "Core Stability & Posture",
-        moves: ["Bird-Dog", "Side Plank (Right/Left)", "Glute Bridge March", "Superman Hold", "Cat-Cow"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Bird-Dog", muscle: "Erector spinae, glutes & kestabilan silang tubuh", cue: "Rentangkan tangan dan kaki berlawanan sejajar lantai tanpa melengkungkan pinggang bawah.", pos: "Posisi merangkak di matras" },
+          { name: "Side Plank (Kanan/Kiri)", muscle: "Obliq samping, quadratus lumborum & gluteus medius", cue: "Tumpu pada satu siku, angkat pinggul hingga badan membentuk satu garis lurus diagonal.", pos: "Posisi menyamping di matras" },
+          { name: "Glute Bridge March", muscle: "Gluteus, hamstring & stabilitas panggul dinamis", cue: "Tahan posisi bridge, angkat lutut bergantian perlahan tanpa membiarkan pinggul miring.", pos: "Telentang di matras" },
+          { name: "Superman Hold", muscle: "Punggung atas, erector spinae & glutes", cue: "Tengkurap, angkat dada dan paha secara bersamaan dari lantai, tahan dengan napas teratur.", pos: "Tengkurap di matras" },
+          { name: "Cat-Cow", muscle: "Mobilitas artikulasi tulang belakang & relaksasi leher", cue: "Lengkungkan punggung ke atas sambil buang napas, lalu turunkan perut sambil tarik napas.", pos: "Posisi merangkak di matras" }
+        ]
       },
       jumat: {
         title: "Friday",
         focus: "HIIT Fat Burn",
-        moves: ["Squat to Calf Raise", "Speed Skaters", "Push-Up to T-Rotation", "High Marching", "Hollow Tuck"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Squat to Calf Raise", muscle: "Quads, glutes & betis (gastrocnemius)", cue: "Lakukan squat penuh, saat berdiri dorong bertenaga hingga berjinjit di ujung jari kaki.", pos: "Posisi berdiri" },
+          { name: "Speed Skaters", muscle: "Pembakar kalori, gluteus medius & kelincahan", cue: "Lompat menyamping dengan ritme cepat, silangkan kaki belakang dengan dada tetap tegap.", pos: "Posisi berdiri dinamis" },
+          { name: "Push-Up to T-Rotation", muscle: "Dada, bahu, trisep & rotasi obliq", cue: "Lakukan 1 push-up, lalu putar badan ke satu sisi angkat tangan ke atas membentuk huruf T.", pos: "Posisi push-up di lantai" },
+          { name: "High Marching", muscle: "Kardio aerobik, fleksor panggul & core", cue: "Angkat lutut setinggi pinggang secara bergantian dengan ayunan lengan yang bertenaga.", pos: "Posisi berdiri di tempat" },
+          { name: "Hollow Tuck", muscle: "Rektus abdominis & kekuatan dinding perut", cue: "Duduk seimbang di tulang ekor, tarik lutut ke dada lalu rentangkan badan terkontrol.", pos: "Duduk di matras" }
+        ]
       },
       sabtu: {
         title: "Saturday",
         focus: "Total Body Strength",
-        moves: ["Curtsy Lunge", "Hand-Release Push-Up", "Tabletop Bridge", "Mountain Climber", "Forearm Plank"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Curtsy Lunge", muscle: "Gluteus medius, paha luar & stabilitas panggul", cue: "Silangkan satu kaki ke belakang menyerong, tekuk kedua lutut stabil, dada tetap tegap.", pos: "Posisi berdiri" },
+          { name: "Hand-Release Push-Up", muscle: "Dada, bahu, rentang gerak penuh & postur", cue: "Turunkan badan sampai dada menyentuh lantai, angkat telapak sesaat, lalu dorong ke atas.", pos: "Tengkurap di lantai" },
+          { name: "Tabletop Bridge", muscle: "Rantai otot belakang, glutes & pembuka bahu depan", cue: "Duduk lutut ditekuk tangan di belakang, dorong pinggul ke atas hingga sejajar meja, tahan 1 detik.", pos: "Duduk di matras" },
+          { name: "Mountain Climber", muscle: "Otot perut bawah, bahu & pacu kardio", cue: "High plank, tarik lutut bergantian cepat dan stabil tanpa membiarkan pinggul naik.", pos: "Posisi high plank" },
+          { name: "Forearm Plank", muscle: "Core isometrik & pelindung pinggang bawah", cue: "Tumpu pada lengan bawah, kunci perut dan bokong, pandangan ke ujung jari tangan.", pos: "Posisi forearm plank di lantai" }
+        ]
       },
       minggu: {
         title: "Sunday",
         focus: "Mobility & Active Core",
-        moves: ["Dead Bug", "Bird-Dog", "Glute Bridge Hold", "Child's Pose", "Thoracic Stretch"]
+        warmup: WARMUP_DEFAULT,
+        cooldown: COOLDOWN_DEFAULT,
+        moves: [
+          { name: "Dead Bug", muscle: "Stabilitas inti lumbopelvic anterior", cue: "Tekan punggung bawah rata ke matras, gerakkan tangan dan kaki berlawanan perlahan.", pos: "Telentang di matras" },
+          { name: "Bird-Dog", muscle: "Keseimbangan diagonal & otot punggung", cue: "Rentangkan tangan dan kaki berlawanan, tahan 2 detik di puncak dengan tubuh sejajar.", pos: "Posisi merangkak di matras" },
+          { name: "Glute Bridge Hold", muscle: "Gluteus maximus & rantai posterior", cue: "Dorong pinggul tinggi dan tahan di puncak, remas otot bokong tanpa membebani leher.", pos: "Telentang di matras" },
+          { name: "Child's Pose", muscle: "Dekompresi pinggang bawah & relaksasi panggul", cue: "Duduk di atas tumit, julurkan lengan ke depan lantai, tarik napas dalam dan rileks.", pos: "Bersujud di matras" },
+          { name: "Thoracic Stretch", muscle: "Mobilitas punggung tengah (toraks) & pembuka dada", cue: "Tangan di belakang kepala, putar siku ke atas membuka dada sambil buang napas perlahan.", pos: "Duduk atau merangkak" }
+        ]
       }
     };
 
-    // Load from LocalStorage or default
-    let schedule = JSON.parse(localStorage.getItem('grindin_schedule')) || DEFAULT_SCHEDULE;
+    // Safe LocalStorage Migration
+    let schedule = DEFAULT_SCHEDULE;
+    try {
+      const stored = localStorage.getItem('grindin_schedule');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        let valid = true;
+        for (const k in DEFAULT_SCHEDULE) {
+          if (!parsed[k] || !Array.isArray(parsed[k].moves) || typeof parsed[k].moves[0] !== 'object' || !parsed[k].moves[0].cue) {
+            valid = false;
+            break;
+          }
+        }
+        if (valid) {
+          schedule = parsed;
+        } else {
+          localStorage.setItem('grindin_schedule', JSON.stringify(DEFAULT_SCHEDULE));
+        }
+      }
+    } catch (e) {
+      console.warn('Storage migration fallback:', e);
+    }
+
     let config = JSON.parse(localStorage.getItem('grindin_config')) || {
       workDuration: 40,
       restDuration: 20,
@@ -903,9 +1075,30 @@
       audioEnabled: true
     };
 
-    // Determine current day key
-    const daysMap = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
-    let currentDayKey = daysMap[new Date().getDay()];
+    // Deep-Link & Query Parameter Resolution
+    function getInitialDayKey() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const param = urlParams.get('day');
+      if (param) {
+        const p = param.toLowerCase().trim();
+        const aliasMap = {
+          'senin': 'senin', 'mon': 'senin', 'monday': 'senin', '1': 'senin',
+          'selasa': 'selasa', 'tue': 'selasa', 'tuesday': 'selasa', '2': 'selasa',
+          'rabu': 'rabu', 'wed': 'rabu', 'wednesday': 'rabu', '3': 'rabu',
+          'kamis': 'kamis', 'thu': 'kamis', 'thursday': 'kamis', '4': 'kamis',
+          'jumat': 'jumat', 'fri': 'jumat', 'friday': 'jumat', '5': 'jumat',
+          'sabtu': 'sabtu', 'sat': 'sabtu', 'saturday': 'sabtu', '6': 'sabtu',
+          'minggu': 'minggu', 'sun': 'minggu', 'sunday': 'minggu', '0': 'minggu', '7': 'minggu'
+        };
+        if (aliasMap[p] && DEFAULT_SCHEDULE[aliasMap[p]]) {
+          return aliasMap[p];
+        }
+      }
+      const daysMap = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+      return daysMap[new Date().getDay()];
+    }
+
+    let currentDayKey = getInitialDayKey();
 
     // State Variables
     let currentPhase = 'IDLE'; // IDLE, WARMUP, WORK, REST, INTER_ROUND, COOLDOWN, FINISHED
@@ -950,7 +1143,7 @@
       }
     }
 
-    // Speech Synthesizer (English voice)
+    // Speech Synthesizer (English voice with position cue support)
     function speak(text) {
       if (!config.audioEnabled || !('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
@@ -964,7 +1157,7 @@
     // Keep Screen Awake via Wake Lock API
     async function requestWakeLock() {
       try {
-        if ('wakeLock' in navigator) {
+        if ('wakeLock' in navigator && !wakeLock) {
           wakeLock = await navigator.wakeLock.request('screen');
         }
       } catch (err) {
@@ -978,13 +1171,26 @@
       }
     }
 
+    document.addEventListener('visibilitychange', async () => {
+      if (wakeLock !== null && document.visibilityState === 'visible' && isRunning) {
+        await requestWakeLock();
+      }
+    });
+
     // DOM Elements
     const body = document.body;
     const timerDisplay = document.getElementById('timerDisplay');
     const phaseBadge = document.getElementById('phaseBadge');
     const movementTitle = document.getElementById('movementTitle');
+    const formCueContainer = document.getElementById('formCueContainer');
+    const musclePill = document.getElementById('musclePill');
+    const muscleText = document.getElementById('muscleText');
+    const formCueCard = document.getElementById('formCueCard');
+    const formCueText = document.getElementById('formCueText');
     const nextUpCard = document.getElementById('nextUpCard');
     const nextMoveText = document.getElementById('nextMoveText');
+    const nextPosText = document.getElementById('nextPosText');
+    const nextCueText = document.getElementById('nextCueText');
     const roundText = document.getElementById('roundText');
     const moveIdxText = document.getElementById('moveIdxText');
     const routineDayText = document.getElementById('routineDayText');
@@ -1008,56 +1214,98 @@
       roundText.textContent = `${currentRound} / ${config.totalRounds}`;
       moveIdxText.textContent = `${currentMoveIdx + 1} / ${routine.moves.length}`;
 
-      // Update Phase Styling and Badges
+      const curEx = routine.moves[currentMoveIdx];
+      const nextIdx = currentMoveIdx + 1;
+      const nextEx = nextIdx < routine.moves.length ? routine.moves[nextIdx] : (currentRound < config.totalRounds ? routine.moves[0] : null);
+
       body.className = '';
       if (currentPhase === 'WORK') {
         body.classList.add('phase-work');
         phaseBadge.textContent = 'WORK';
-        movementTitle.textContent = routine.moves[currentMoveIdx];
-        nextUpCard.style.opacity = '0.4';
+        movementTitle.textContent = curEx.name;
+
+        formCueContainer.style.display = 'flex';
+        musclePill.style.display = 'inline-flex';
+        muscleText.textContent = curEx.muscle;
+        formCueText.textContent = curEx.cue;
+
+        nextUpCard.style.display = 'none';
       } else if (currentPhase === 'REST') {
         body.classList.add('phase-rest');
         phaseBadge.textContent = 'REST';
         movementTitle.textContent = 'Catch Your Breath';
-        nextUpCard.style.opacity = '1';
-        const nextIdx = currentMoveIdx + 1;
-        const nextMoveName = nextIdx < routine.moves.length ? routine.moves[nextIdx] : (currentRound < config.totalRounds ? routine.moves[0] : 'Cool-down');
-        nextMoveText.textContent = nextMoveName;
+
+        formCueContainer.style.display = 'none';
+        nextUpCard.style.display = 'flex';
+        if (nextEx) {
+          nextMoveText.textContent = nextEx.name;
+          nextPosText.textContent = nextEx.pos;
+          nextCueText.textContent = nextEx.cue;
+        } else {
+          nextMoveText.textContent = 'Cool-down';
+          nextPosText.textContent = 'Floor / Mat';
+          nextCueText.textContent = "Child's pose & deep breaths";
+        }
       } else if (currentPhase === 'INTER_ROUND') {
         body.classList.add('phase-inter-round');
         phaseBadge.textContent = 'ROUND BREAK';
         movementTitle.textContent = `Round ${currentRound} Complete!`;
-        nextUpCard.style.opacity = '1';
-        nextMoveText.textContent = `(Round ${currentRound + 1}) ${routine.moves[0]}`;
+
+        formCueContainer.style.display = 'none';
+        nextUpCard.style.display = 'flex';
+        const firstEx = routine.moves[0];
+        nextMoveText.textContent = `(Round ${currentRound + 1}) ${firstEx.name}`;
+        nextPosText.textContent = firstEx.pos;
+        nextCueText.textContent = firstEx.cue;
       } else if (currentPhase === 'WARMUP') {
         body.classList.add('phase-warmup');
         phaseBadge.textContent = 'WARM-UP';
-        movementTitle.textContent = 'Arm Circles, Hip Circles & Marching';
-        nextUpCard.style.opacity = '1';
-        nextMoveText.textContent = routine.moves[0];
+        movementTitle.textContent = 'Warm-up Routine';
+
+        formCueContainer.style.display = 'flex';
+        musclePill.style.display = 'none';
+        formCueText.textContent = routine.warmup ? routine.warmup.join(' • ') : "Arm circles (30s) • Hip circles (30s) • Marching (30s)";
+
+        nextUpCard.style.display = 'flex';
+        const firstEx = routine.moves[0];
+        nextMoveText.textContent = firstEx.name;
+        nextPosText.textContent = firstEx.pos;
+        nextCueText.textContent = firstEx.cue;
       } else if (currentPhase === 'COOLDOWN') {
         body.classList.add('phase-cooldown');
         phaseBadge.textContent = 'COOL-DOWN';
-        movementTitle.textContent = "Child's Pose & Stretching";
-        nextUpCard.style.opacity = '0';
+        movementTitle.textContent = 'Cool-down & Recovery';
+
+        formCueContainer.style.display = 'flex';
+        musclePill.style.display = 'none';
+        formCueText.textContent = routine.cooldown ? routine.cooldown.join(' • ') : "Child's pose dekompresi tulang belakang (30s) • Peregangan dada & paha (30s)";
+
+        nextUpCard.style.display = 'none';
       } else if (currentPhase === 'FINISHED') {
         body.classList.add('phase-work');
         phaseBadge.textContent = 'WORKOUT FINISHED!';
         movementTitle.innerHTML = '<i class="nf nf-fa-trophy" aria-hidden="true"></i> Fantastic Job Today!';
-        nextUpCard.style.opacity = '0';
+        formCueContainer.style.display = 'none';
+        nextUpCard.style.display = 'none';
       } else {
         // IDLE
         body.classList.add('phase-work');
         phaseBadge.textContent = 'GET READY';
-        movementTitle.textContent = routine.moves[0];
-        nextUpCard.style.opacity = '0.8';
-        nextMoveText.textContent = routine.moves[0];
+        movementTitle.textContent = curEx.name;
+
+        formCueContainer.style.display = 'flex';
+        musclePill.style.display = 'inline-flex';
+        muscleText.textContent = curEx.muscle;
+        formCueText.textContent = curEx.cue;
+
+        nextUpCard.style.display = 'flex';
+        nextMoveText.textContent = curEx.name;
+        nextPosText.textContent = curEx.pos;
+        nextCueText.textContent = curEx.cue;
       }
 
-      // Update Move Timeline Bar
       renderTimeline();
 
-      // Controls State
       if (isRunning) {
         playText.textContent = 'PAUSE';
         playIcon.className = 'nf nf-fa-pause';
@@ -1090,10 +1338,10 @@
       timeRemaining = config.workDuration;
       halfwayNotified = false;
       const routine = schedule[currentDayKey];
-      const mv = routine.moves[currentMoveIdx];
+      const curEx = routine.moves[currentMoveIdx];
       updateUI();
       playTone(1174.66, 0.4); // D6 Chime
-      speak(`${mv}, let's go!`);
+      speak(`${curEx.name}, let's go!`);
     }
 
     function startRest() {
@@ -1101,19 +1349,20 @@
       timeRemaining = config.restDuration;
       const routine = schedule[currentDayKey];
       const nextIdx = currentMoveIdx + 1;
-      const nextMv = nextIdx < routine.moves.length ? routine.moves[nextIdx] : routine.moves[0];
+      const nextEx = nextIdx < routine.moves.length ? routine.moves[nextIdx] : routine.moves[0];
       updateUI();
       playTone(392.0, 0.35); // G4 Tone
-      speak(`Rest for ${config.restDuration} seconds. Next up: ${nextMv}`);
+      speak(`Rest for ${config.restDuration} seconds. Next up: ${nextEx.name}. ${nextEx.pos}`);
     }
 
     function startInterRoundRest() {
       currentPhase = 'INTER_ROUND';
       timeRemaining = config.interRoundRest;
       const routine = schedule[currentDayKey];
+      const firstEx = routine.moves[0];
       updateUI();
       playTone(392.0, 0.4);
-      speak(`Round ${currentRound} complete! Long rest for ${config.interRoundRest} seconds. Next up: ${routine.moves[0]}`);
+      speak(`Round ${currentRound} complete! Long rest for ${config.interRoundRest} seconds. Next up: ${firstEx.name}. ${firstEx.pos}`);
     }
 
     function startCooldown() {
@@ -1139,12 +1388,10 @@
     function tick() {
       if (!isRunning) return;
 
-      // 3-2-1 Countdown Beeps
       if (timeRemaining <= 3 && timeRemaining > 0) {
-        playTone(880.0, 0.15); // A5 pip
+        playTone(880.0, 0.15); // A5 countdown pip
       }
 
-      // Halfway Alert (at 50% of work duration)
       if (currentPhase === 'WORK' && !halfwayNotified) {
         const half = Math.floor(config.workDuration / 2);
         if (timeRemaining <= half) {
@@ -1288,7 +1535,7 @@
         row.className = 'move-item-row';
         row.innerHTML = `
           <div class="move-idx-badge" aria-hidden="true">${idx + 1}</div>
-          <input type="text" class="move-input-field" value="${m}" aria-label="Exercise ${idx + 1} Name" style="flex:1;">
+          <input type="text" class="move-input-field" value="${m.name}" aria-label="Exercise ${idx + 1} Name" style="flex:1;">
         `;
         movesEditList.appendChild(row);
       });
@@ -1313,13 +1560,11 @@
       config.cooldownDuration = parseInt(document.getElementById('inputCooldownDuration').value, 10) || 0;
 
       const inputs = movesEditList.querySelectorAll('.move-input-field');
-      const updatedMoves = [];
-      inputs.forEach(inp => {
-        if (inp.value.trim()) updatedMoves.push(inp.value.trim());
+      inputs.forEach((inp, idx) => {
+        if (inp.value.trim() && schedule[currentDayKey].moves[idx]) {
+          schedule[currentDayKey].moves[idx].name = inp.value.trim();
+        }
       });
-      if (updatedMoves.length > 0) {
-        schedule[currentDayKey].moves = updatedMoves;
-      }
 
       localStorage.setItem('grindin_config', JSON.stringify(config));
       localStorage.setItem('grindin_schedule', JSON.stringify(schedule));
@@ -1328,7 +1573,7 @@
       handleReset();
     }
 
-    // Custom Stepper Arrow Logic (Supports Step of 5 & Smooth Repeated Clicking)
+    // Custom Stepper Arrow Logic (Step 5, Repeat on Hold)
     function setupSteppers() {
       const arrows = document.querySelectorAll('.stepper-arrow');
       arrows.forEach(arrow => {
@@ -1376,7 +1621,6 @@
         arrow.addEventListener('touchend', stopStepping);
         arrow.addEventListener('touchcancel', stopStepping);
 
-        // Keyboard activation on stepper buttons
         arrow.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -1386,7 +1630,7 @@
       });
     }
 
-    // Modal Keyboard Trap & Escape Listener
+    // Modal Focus Trap & Escape Key Listener
     settingsModal.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -1429,10 +1673,8 @@
       chip.addEventListener('click', () => selectDay(chip.dataset.day));
     });
 
-    // Initialize Stepper Arrows
+    // Initialize Steppers & Auto-select Day
     setupSteppers();
-
-    // Auto-select Today on load
     selectDay(currentDayKey);
   </script>
 </body>

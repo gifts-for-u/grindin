@@ -36,6 +36,8 @@ impl GrindinEngine {
             routine.day_name.clone(),
             routine.focus.clone(),
             routine.moves.clone(),
+            routine.warmup_movements.clone(),
+            routine.cooldown_movements.clone(),
             config,
         );
 
@@ -54,18 +56,28 @@ impl GrindinEngine {
                 routine.day_name.clone(),
                 routine.focus.clone(),
                 routine.moves.clone(),
+                routine.warmup_movements.clone(),
+                routine.cooldown_movements.clone(),
                 config,
             );
         }
     }
 
     pub fn update_routine_moves(&mut self, day_key: &str, moves_json: &str) {
-        if let Ok(new_moves) = serde_json::from_str::<Vec<String>>(moves_json) {
+        let new_exercises = if let Ok(exercises) = serde_json::from_str::<Vec<schedule::Exercise>>(moves_json) {
+            Some(exercises)
+        } else if let Ok(strings) = serde_json::from_str::<Vec<String>>(moves_json) {
+            Some(strings.into_iter().map(|s| schedule::Exercise::new(&s, "", "", "")).collect())
+        } else {
+            None
+        };
+
+        if let Some(exercises) = new_exercises {
             if let Some(routine) = self.schedule.routines.iter_mut().find(|r| r.day_key.eq_ignore_ascii_case(day_key)) {
-                routine.moves = new_moves.clone();
+                routine.moves = exercises.clone();
             }
             if self.state_machine.day_key.eq_ignore_ascii_case(day_key) {
-                self.state_machine.moves = new_moves;
+                self.state_machine.moves = exercises;
             }
         }
     }
@@ -131,12 +143,12 @@ impl GrindinEngine {
                     audio::AudioEngine::speak("Halfway through! Keep pushing!", lang);
                 }
             }
-            AudioEvent::StartWork(move_name) => {
+            AudioEvent::StartWork(exercise) => {
                 if beeps {
                     self.audio.beep_start();
                 }
                 if speech {
-                    audio::AudioEngine::speak(&format!("{}, let's go!", move_name), lang);
+                    audio::AudioEngine::speak(&format!("{}, let's go!", exercise.name), lang);
                 }
             }
             AudioEvent::StartRest { next_move } => {
@@ -144,8 +156,10 @@ impl GrindinEngine {
                     self.audio.beep_rest();
                 }
                 if speech {
-                    let next_str = next_move.map(|m| format!("Next up: {}", m)).unwrap_or_default();
-                    let msg = format!("Rest. {}", next_str);
+                    let next_str = next_move
+                        .map(|m| format!("Next up: {}. {}", m.name, m.position_cue))
+                        .unwrap_or_default();
+                    let msg = format!("Rest for {} seconds. {}", self.state_machine.config.rest_duration, next_str);
                     audio::AudioEngine::speak(&msg, lang);
                 }
             }
@@ -154,8 +168,10 @@ impl GrindinEngine {
                     self.audio.beep_rest();
                 }
                 if speech {
-                    let next_str = next_move.map(|m| format!("Next up: {}", m)).unwrap_or_default();
-                    let msg = format!("Round {} complete! Long rest. {}", round_completed, next_str);
+                    let next_str = next_move
+                        .map(|m| format!("Next up: {}. {}", m.name, m.position_cue))
+                        .unwrap_or_default();
+                    let msg = format!("Round {} complete! Long rest for {} seconds. {}", round_completed, self.state_machine.config.inter_round_rest, next_str);
                     audio::AudioEngine::speak(&msg, lang);
                 }
             }

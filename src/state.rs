@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::schedule::Exercise;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Phase {
@@ -21,7 +22,7 @@ pub struct WorkoutConfig {
     pub cooldown_duration: u32,   // default: 60s (0 to disable)
     pub speech_enabled: bool,     // default: true
     pub beeps_enabled: bool,      // default: true
-    pub lang: String,             // "id-ID" or "en-US"
+    pub lang: String,             // "en-US" or "id-ID"
 }
 
 impl Default for WorkoutConfig {
@@ -50,7 +51,11 @@ pub struct TimerSnapshot {
     pub current_move_idx: usize,
     pub total_moves: usize,
     pub current_move_name: String,
+    pub current_exercise: Option<Exercise>,
     pub next_move_name: Option<String>,
+    pub next_exercise: Option<Exercise>,
+    pub warmup_movements: Vec<String>,
+    pub cooldown_movements: Vec<String>,
     pub is_running: bool,
     pub day_key: String,
     pub day_title: String,
@@ -59,7 +64,9 @@ pub struct TimerSnapshot {
 
 pub struct WorkoutStateMachine {
     pub config: WorkoutConfig,
-    pub moves: Vec<String>,
+    pub moves: Vec<Exercise>,
+    pub warmup_movements: Vec<String>,
+    pub cooldown_movements: Vec<String>,
     pub day_key: String,
     pub day_title: String,
     pub day_focus: String,
@@ -73,10 +80,20 @@ pub struct WorkoutStateMachine {
 }
 
 impl WorkoutStateMachine {
-    pub fn new(day_key: String, day_title: String, day_focus: String, moves: Vec<String>, config: WorkoutConfig) -> Self {
+    pub fn new(
+        day_key: String,
+        day_title: String,
+        day_focus: String,
+        moves: Vec<Exercise>,
+        warmup_movements: Vec<String>,
+        cooldown_movements: Vec<String>,
+        config: WorkoutConfig,
+    ) -> Self {
         Self {
             config,
             moves,
+            warmup_movements,
+            cooldown_movements,
             day_key,
             day_title,
             day_focus,
@@ -126,11 +143,27 @@ impl WorkoutStateMachine {
         self.halfway_notified = false;
     }
 
+    pub fn current_exercise(&self) -> Option<Exercise> {
+        self.moves.get(self.current_move_idx).cloned()
+    }
+
     pub fn current_move(&self) -> String {
+        self.current_exercise()
+            .map(|e| e.name)
+            .unwrap_or_else(|| "Exercise".to_string())
+    }
+
+    pub fn next_exercise(&self) -> Option<Exercise> {
         if self.moves.is_empty() {
-            return "Gerakan".to_string();
+            return None;
         }
-        self.moves.get(self.current_move_idx).cloned().unwrap_or_else(|| self.moves[0].clone())
+        if self.current_move_idx + 1 < self.moves.len() {
+            Some(self.moves[self.current_move_idx + 1].clone())
+        } else if self.current_round < self.config.total_rounds {
+            Some(self.moves[0].clone())
+        } else {
+            None
+        }
     }
 
     pub fn next_move(&self) -> Option<String> {
@@ -138,18 +171,16 @@ impl WorkoutStateMachine {
             return None;
         }
         if self.current_move_idx + 1 < self.moves.len() {
-            Some(self.moves[self.current_move_idx + 1].clone())
+            Some(self.moves[self.current_move_idx + 1].name.clone())
         } else if self.current_round < self.config.total_rounds {
-            // First move of next round
-            Some(format!("(Putaran {}) {}", self.current_round + 1, self.moves[0]))
+            Some(format!("(Round {}) {}", self.current_round + 1, self.moves[0].name))
         } else if self.config.cooldown_duration > 0 {
-            Some("Pendinginan (Cool Down)".to_string())
+            Some("Cool-down".to_string())
         } else {
-            Some("Selesai!".to_string())
+            Some("Workout Complete!".to_string())
         }
     }
 
-    // Returns an optional Action cue for audio/sound
     pub fn tick(&mut self) -> Option<AudioEvent> {
         if !self.is_running || self.phase == Phase::Idle || self.phase == Phase::Finished {
             return None;
@@ -187,13 +218,13 @@ impl WorkoutStateMachine {
         match self.phase {
             Phase::Warmup => {
                 self.start_work_interval();
-                Some(AudioEvent::StartWork(self.current_move()))
+                let ex = self.current_exercise().unwrap_or_else(|| Exercise::new("Exercise", "", "", ""));
+                Some(AudioEvent::StartWork(ex))
             }
             Phase::Work => {
                 let is_last_move_in_round = self.current_move_idx + 1 >= self.moves.len();
                 if is_last_move_in_round {
                     if self.current_round >= self.config.total_rounds {
-                        // Finished all moves and rounds!
                         if self.config.cooldown_duration > 0 {
                             self.phase = Phase::Cooldown;
                             self.time_remaining = self.config.cooldown_duration;
@@ -204,7 +235,6 @@ impl WorkoutStateMachine {
                             Some(AudioEvent::WorkoutFinished)
                         }
                     } else {
-                        // Rest between rounds
                         self.phase = Phase::InterRoundRest;
                         self.time_remaining = self.config.inter_round_rest;
                         let next = self.moves.first().cloned();
@@ -214,23 +244,24 @@ impl WorkoutStateMachine {
                         })
                     }
                 } else {
-                    // Normal rest between moves
                     self.phase = Phase::Rest;
                     self.time_remaining = self.config.rest_duration;
-                    let next = self.next_move();
+                    let next = self.next_exercise();
                     Some(AudioEvent::StartRest { next_move: next })
                 }
             }
             Phase::Rest => {
                 self.current_move_idx += 1;
                 self.start_work_interval();
-                Some(AudioEvent::StartWork(self.current_move()))
+                let ex = self.current_exercise().unwrap_or_else(|| Exercise::new("Exercise", "", "", ""));
+                Some(AudioEvent::StartWork(ex))
             }
             Phase::InterRoundRest => {
                 self.current_round += 1;
                 self.current_move_idx = 0;
                 self.start_work_interval();
-                Some(AudioEvent::StartWork(self.current_move()))
+                let ex = self.current_exercise().unwrap_or_else(|| Exercise::new("Exercise", "", "", ""));
+                Some(AudioEvent::StartWork(ex))
             }
             Phase::Cooldown => {
                 self.phase = Phase::Finished;
@@ -260,7 +291,11 @@ impl WorkoutStateMachine {
             current_move_idx: self.current_move_idx,
             total_moves: self.moves.len(),
             current_move_name: self.current_move(),
+            current_exercise: self.current_exercise(),
             next_move_name: self.next_move(),
+            next_exercise: self.next_exercise(),
+            warmup_movements: self.warmup_movements.clone(),
+            cooldown_movements: self.cooldown_movements.clone(),
             is_running: self.is_running,
             day_key: self.day_key.clone(),
             day_title: self.day_title.clone(),
@@ -273,9 +308,9 @@ impl WorkoutStateMachine {
 pub enum AudioEvent {
     Countdown(u32),
     Halfway,
-    StartWork(String),
-    StartRest { next_move: Option<String> },
-    StartInterRoundRest { round_completed: u32, next_move: Option<String> },
+    StartWork(Exercise),
+    StartRest { next_move: Option<Exercise> },
+    StartInterRoundRest { round_completed: u32, next_move: Option<Exercise> },
     StartCooldown,
     WorkoutFinished,
 }
