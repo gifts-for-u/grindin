@@ -94,7 +94,7 @@ impl Default for WorkoutSchedule {
                 DayRoutine {
                     day_key: "kamis".to_string(),
                     day_name: "Thursday".to_string(),
-                    focus: "Core Stability & Posture",
+                    focus: "Core Stability & Posture".to_string(),
                     warmup_movements: warmup_default.clone(),
                     cooldown_movements: cooldown_default.clone(),
                     moves: vec![
@@ -108,7 +108,7 @@ impl Default for WorkoutSchedule {
                 DayRoutine {
                     day_key: "jumat".to_string(),
                     day_name: "Friday".to_string(),
-                    focus: "HIIT Fat Burn",
+                    focus: "HIIT Fat Burn".to_string(),
                     warmup_movements: warmup_default.clone(),
                     cooldown_movements: cooldown_default.clone(),
                     moves: vec![
@@ -122,7 +122,7 @@ impl Default for WorkoutSchedule {
                 DayRoutine {
                     day_key: "sabtu".to_string(),
                     day_name: "Saturday".to_string(),
-                    focus: "Total Body Strength",
+                    focus: "Total Body Strength".to_string(),
                     warmup_movements: warmup_default.clone(),
                     cooldown_movements: cooldown_default.clone(),
                     moves: vec![
@@ -136,7 +136,7 @@ impl Default for WorkoutSchedule {
                 DayRoutine {
                     day_key: "minggu".to_string(),
                     day_name: "Sunday".to_string(),
-                    focus: "Mobility & Active Core",
+                    focus: "Mobility & Active Core".to_string(),
                     warmup_movements: warmup_default.clone(),
                     cooldown_movements: cooldown_default.clone(),
                     moves: vec![
