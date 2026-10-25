@@ -1,5 +1,4 @@
-use wasm_bindgen::prelude::*;
-use web_sys::{AudioContext, GainNode, OscillatorNode, SpeechSynthesisUtterance};
+use web_sys::{AudioContext, OscillatorType, SpeechSynthesisUtterance};
 
 // ponytail: direct native Web Audio & Web Speech APIs eliminate the need for heavy MP3 assets or audio fetch latency.
 pub struct AudioEngine {
@@ -17,19 +16,19 @@ impl AudioEngine {
             if let Ok(osc) = ctx.create_oscillator() {
                 if let Ok(gain) = ctx.create_gain() {
                     let now = ctx.current_time();
-                    osc.set_type(web_sys::OscillatorType::Sine);
+                    osc.set_type(OscillatorType::Sine);
                     osc.frequency().set_value(frequency);
 
                     // Fade in and fade out envelope to avoid speaker clicks
-                    gain.gain().set_value_at_time(0.001, now).ok();
-                    gain.gain().exponential_ramp_to_value_at_time(gain_level, now + 0.02).ok();
-                    gain.gain().exponential_ramp_to_value_at_time(0.0001, now + duration_secs).ok();
+                    let _ = gain.gain().set_value_at_time(0.001, now);
+                    let _ = gain.gain().exponential_ramp_to_value_at_time(gain_level, now + 0.02);
+                    let _ = gain.gain().exponential_ramp_to_value_at_time(0.0001, now + duration_secs);
 
                     if osc.connect_with_audio_node(&gain).is_ok()
                         && gain.connect_with_audio_node(&ctx.destination()).is_ok()
                     {
-                        osc.start_with_when(now).ok();
-                        osc.stop_with_when(now + duration_secs).ok();
+                        let _ = osc.start_with_when(now);
+                        let _ = osc.stop_with_when(now + duration_secs);
                     }
                 }
             }
@@ -64,8 +63,8 @@ impl AudioEngine {
                     utterance.set_rate(1.05); // slight speedup for brisk workout tempo
                     utterance.set_pitch(1.0);
                     utterance.set_volume(1.0);
-                    speech_synth.cancel(); // cancel pending speech so current cue is prompt
-                    speech_synth.speak(&utterance);
+                    let _ = speech_synth.cancel(); // cancel pending speech so current cue is prompt
+                    let _ = speech_synth.speak(&utterance);
                 }
             }
         }

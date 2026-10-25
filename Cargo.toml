@@ -24,9 +24,14 @@ features = [
   "SpeechSynthesis",
   "SpeechSynthesisUtterance",
   "AudioContext",
-  "OscillatorNode",
+  "BaseAudioContext",
   "AudioDestinationNode",
+  "AudioNode",
+  "AudioParam",
+  "AudioScheduledSourceNode",
   "GainNode",
+  "OscillatorNode",
+  "OscillatorType",
   "Storage",
   "Performance"
 ]
